@@ -828,3 +828,109 @@ form[method="dialog"] { padding: 1rem 1.1rem; display: flex; flex-direction: col
 
 /* Tab counts are spans next to emoji labels */
 .form-control-sm { font-size: 0.75rem; }
+
+/* ==========================================================================
+   GitHub Gist Cloud Sync Styles (Terminal Minimalist)
+   ========================================================================== */
+.sync-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+  transition: background-color 0.2s ease;
+}
+.dot-off { background: #64748b; }
+.dot-synced { background: var(--cli-green, #10b981); }
+.dot-syncing {
+  background: var(--cli-amber, #f59e0b);
+  animation: dot-pulse 1s infinite alternate;
+}
+.dot-error { background: var(--cli-red, #f43f5e); }
+
+@keyframes dot-pulse {
+  from { opacity: 0.4; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1.1); }
+}
+
+.input-with-button {
+  display: flex;
+  gap: 0.35rem;
+}
+.input-with-button .form-control {
+  flex: 1;
+}
+
+.sync-description {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 0.9rem;
+}
+
+.sync-feedback-box {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  line-height: 1.4;
+}
+.sync-feedback-box.success {
+  border-color: var(--cli-green);
+  color: var(--cli-green);
+  background: rgba(16, 185, 129, 0.08);
+}
+.sync-feedback-box.error {
+  border-color: var(--cli-red);
+  color: var(--cli-red);
+  background: rgba(244, 63, 94, 0.08);
+}
+.sync-feedback-box.info {
+  border-color: var(--cli-blue);
+  color: var(--cli-blue);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.sync-status-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.25rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+.sync-detail-label {
+  color: var(--text-muted);
+}
+.sync-detail-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  border: 1px solid var(--cli-red);
+  color: var(--cli-red);
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-outline-danger:hover {
+  background: rgba(244, 63, 94, 0.12);
+}
+
+.sync-dialog-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

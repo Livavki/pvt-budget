@@ -11,6 +11,8 @@
   // Configuration & Constants
   // --------------------------------------------------------------------------
   const STORAGE_KEY = 'sakurabudget_whv_eur_9m_v1';
+  const SYNC_CONFIG_KEY = 'sakurabudget_gist_sync_config_v1';
+  const GIST_FILENAME = 'sakurabudget.json';
 
   // The 9 consecutive months from October 2026 to June 2027 (Departure)
   const MONTH_KEYS = [
@@ -112,6 +114,9 @@
     countdownDisplay: document.getElementById('countdownDisplay'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     presetBtn: document.getElementById('presetBtn'),
+    syncModalBtn: document.getElementById('syncModalBtn'),
+    syncStatusDot: document.getElementById('syncStatusDot'),
+    syncStatusLabel: document.getElementById('syncStatusLabel'),
 
     // Hero Stats
     displayGoalAmount: document.getElementById('displayGoalAmount'),
@@ -224,7 +229,21 @@
     exportDataBtn: document.getElementById('exportDataBtn'),
     importDataBtn: document.getElementById('importDataBtn'),
     importFileInput: document.getElementById('importFileInput'),
-    resetDefaultsBtn: document.getElementById('resetDefaultsBtn')
+    resetDefaultsBtn: document.getElementById('resetDefaultsBtn'),
+
+    // GitHub Gist Cloud Sync
+    syncModal: document.getElementById('syncModal'),
+    syncConfigForm: document.getElementById('syncConfigForm'),
+    inputGistId: document.getElementById('inputGistId'),
+    inputGithubToken: document.getElementById('inputGithubToken'),
+    toggleTokenVisibilityBtn: document.getElementById('toggleTokenVisibilityBtn'),
+    syncFeedbackBox: document.getElementById('syncFeedbackBox'),
+    syncDetailText: document.getElementById('syncDetailText'),
+    disconnectSyncBtn: document.getElementById('disconnectSyncBtn'),
+    manualPullBtn: document.getElementById('manualPullBtn'),
+    manualPushBtn: document.getElementById('manualPushBtn'),
+    saveSyncConfigBtn: document.getElementById('saveSyncConfigBtn'),
+    autoCreateGistBtn: document.getElementById('autoCreateGistBtn')
   };
 
   // --------------------------------------------------------------------------
@@ -270,12 +289,339 @@
     return JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
 
-  function saveState() {
+  function saveState(skipCloudSync = false) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      if (!skipCloudSync) {
+        queueCloudSync();
+      }
     } catch (e) {
       console.error('Error saving state:', e);
     }
+  }
+
+  // --------------------------------------------------------------------------
+  // GitHub Gist Cloud Sync Engine
+  // --------------------------------------------------------------------------
+  let syncDebounceTimer = null;
+  let isSyncing = false;
+
+  function getSyncConfig() {
+    try {
+      const raw = localStorage.getItem(SYNC_CONFIG_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveSyncConfig(cfg) {
+    try {
+      localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(cfg));
+    } catch (e) {
+      console.error('Failed to save sync config:', e);
+    }
+  }
+
+  function clearSyncConfig() {
+    try {
+      localStorage.removeItem(SYNC_CONFIG_KEY);
+    } catch (e) {
+      console.error('Failed to clear sync config:', e);
+    }
+  }
+
+  function updateSyncUI(status, message = '') {
+    if (!DOM.syncStatusDot || !DOM.syncStatusLabel) return;
+
+    // Reset dot classes
+    DOM.syncStatusDot.className = 'sync-status-dot';
+
+    if (status === 'synced') {
+      DOM.syncStatusDot.classList.add('dot-synced');
+      DOM.syncStatusLabel.textContent = '☁️ Synced';
+      if (DOM.syncModalBtn) DOM.syncModalBtn.title = message || 'Cloud Sync active: All changes synced to GitHub Gist';
+    } else if (status === 'syncing') {
+      DOM.syncStatusDot.classList.add('dot-syncing');
+      DOM.syncStatusLabel.textContent = '⏳ Syncing...';
+      if (DOM.syncModalBtn) DOM.syncModalBtn.title = 'Syncing data with GitHub Gist...';
+    } else if (status === 'error') {
+      DOM.syncStatusDot.classList.add('dot-error');
+      DOM.syncStatusLabel.textContent = '⚠️ Sync Error';
+      if (DOM.syncModalBtn) DOM.syncModalBtn.title = message || 'Failed to sync with GitHub Gist. Click to review.';
+    } else {
+      // 'off'
+      DOM.syncStatusDot.classList.add('dot-off');
+      DOM.syncStatusLabel.textContent = '☁️ Cloud: Off';
+      if (DOM.syncModalBtn) DOM.syncModalBtn.title = 'Cloud Sync is off. Click to configure GitHub Gist.';
+    }
+
+    // Modal elements if present
+    if (DOM.syncDetailText) {
+      const cfg = getSyncConfig();
+      if (!cfg || !cfg.gistId || !cfg.token) {
+        DOM.syncDetailText.textContent = 'Not connected';
+        DOM.syncDetailText.style.color = 'var(--text-muted)';
+        if (DOM.disconnectSyncBtn) DOM.disconnectSyncBtn.classList.add('hidden');
+        if (DOM.manualPullBtn) DOM.manualPullBtn.classList.add('hidden');
+        if (DOM.manualPushBtn) DOM.manualPushBtn.classList.add('hidden');
+        if (DOM.saveSyncConfigBtn) DOM.saveSyncConfigBtn.textContent = 'Connect & Sync';
+      } else {
+        const timeStr = cfg.lastSyncedAt ? new Date(cfg.lastSyncedAt).toLocaleTimeString() : 'Never';
+        if (status === 'syncing') {
+          DOM.syncDetailText.textContent = 'Syncing...';
+          DOM.syncDetailText.style.color = 'var(--cli-amber)';
+        } else if (status === 'error') {
+          DOM.syncDetailText.textContent = 'Error: ' + (message || 'Connection failed');
+          DOM.syncDetailText.style.color = 'var(--cli-red)';
+        } else {
+          DOM.syncDetailText.textContent = `Connected (Last sync: ${timeStr})`;
+          DOM.syncDetailText.style.color = 'var(--cli-green)';
+        }
+        if (DOM.disconnectSyncBtn) DOM.disconnectSyncBtn.classList.remove('hidden');
+        if (DOM.manualPullBtn) DOM.manualPullBtn.classList.remove('hidden');
+        if (DOM.manualPushBtn) DOM.manualPushBtn.classList.remove('hidden');
+        if (DOM.saveSyncConfigBtn) DOM.saveSyncConfigBtn.textContent = 'Update Config';
+      }
+    }
+  }
+
+  function setSyncFeedback(type, message) {
+    if (!DOM.syncFeedbackBox) return;
+    if (!message) {
+      DOM.syncFeedbackBox.className = 'sync-feedback-box hidden';
+      DOM.syncFeedbackBox.textContent = '';
+      return;
+    }
+    DOM.syncFeedbackBox.className = `sync-feedback-box ${type}`;
+    DOM.syncFeedbackBox.textContent = message;
+  }
+
+  function cleanGistId(input) {
+    if (!input) return '';
+    let str = input.trim();
+    str = str.split('#')[0].split('?')[0].replace(/\/+$/, '');
+    const parts = str.split('/');
+    return parts[parts.length - 1].trim();
+  }
+
+  function cleanToken(input) {
+    if (!input) return '';
+    return input.trim().replace(/^(Bearer|token)\s+/i, '').trim();
+  }
+
+  async function createSecretGist(rawToken) {
+    const token = cleanToken(rawToken);
+    if (!token) throw new Error('Please enter a GitHub Personal Access Token first.');
+
+    const payload = {
+      description: 'SakuraBudget 2027 — Japan WHV Budget Planner Data',
+      public: false,
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(appState, null, 2)
+        }
+      }
+    };
+
+    const res = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('401 Unauthorized: Invalid token or expired. Check that it is a Classic PAT with "gist" scope.');
+      }
+      throw new Error(`HTTP ${res.status}: Failed to create Gist on GitHub.`);
+    }
+
+    const gist = await res.json();
+    return gist.id;
+  }
+
+  async function syncPull(showModalFeedback = false) {
+    const cfg = getSyncConfig();
+    if (!cfg) {
+      updateSyncUI('off');
+      return;
+    }
+
+    const gistId = cleanGistId(cfg.gistId);
+    const token = cleanToken(cfg.token);
+    if (!gistId || !token) {
+      updateSyncUI('off');
+      return;
+    }
+
+    if (isSyncing) return;
+    isSyncing = true;
+    updateSyncUI('syncing');
+    if (showModalFeedback) setSyncFeedback('info', 'Connecting to GitHub Gist and fetching data...');
+
+    try {
+      const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        },
+        cache: 'no-cache'
+      });
+
+      if (!res.ok) {
+        let errDetail = `HTTP ${res.status}`;
+        if (res.status === 401) {
+          errDetail = '401 Unauthorized: Invalid or expired GitHub Token (ensure it has "gist" scope).';
+        } else if (res.status === 404) {
+          errDetail = '404 Not Found: GitHub could not find this Gist. Note: GitHub returns 404 if the Gist ID is wrong, OR if your token lacks the "gist" scope (GitHub hides secret gists behind 404 if unpermitted), OR if you used a Fine-Grained token (you must use a Classic PAT).';
+        }
+        throw new Error(errDetail);
+      }
+
+      const gist = await res.json();
+      let fileData = null;
+
+      if (gist.files && gist.files[GIST_FILENAME]) {
+        fileData = gist.files[GIST_FILENAME];
+      } else if (gist.files) {
+        // Fallback: search for any .json file or first file in gist
+        const jsonKey = Object.keys(gist.files).find(k => k.endsWith('.json')) || Object.keys(gist.files)[0];
+        if (jsonKey) fileData = gist.files[jsonKey];
+      }
+
+      if (!fileData || !fileData.content) {
+        // Gist exists but empty/no matching file: push local data to initialize it
+        if (showModalFeedback) setSyncFeedback('info', 'Gist file not found, initializing with local data...');
+        isSyncing = false;
+        await syncPush(showModalFeedback);
+        return;
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(fileData.content);
+      } catch (err) {
+        throw new Error('Gist file content is not valid JSON.');
+      }
+
+      if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.items)) {
+        throw new Error('Gist data does not match SakuraBudget structure.');
+      }
+
+      // Valid remote data: update local state safely
+      parsed.items = normalizeItems(parsed.items);
+      appState = parsed;
+      saveState(true); // Persist locally without re-triggering an immediate push
+
+      cfg.gistId = gistId;
+      cfg.token = token;
+      cfg.lastSyncedAt = new Date().toISOString();
+      saveSyncConfig(cfg);
+
+      updateSyncUI('synced', `Synced: ${new Date(cfg.lastSyncedAt).toLocaleTimeString()}`);
+      renderApp();
+
+      if (showModalFeedback) {
+        setSyncFeedback('success', '✓ Successfully pulled latest data from GitHub Gist!');
+      }
+    } catch (err) {
+      console.error('Gist Pull Error:', err);
+      updateSyncUI('error', err.message);
+      if (showModalFeedback) {
+        setSyncFeedback('error', `Failed to pull from Gist: ${err.message}`);
+      }
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  async function syncPush(showModalFeedback = false) {
+    const cfg = getSyncConfig();
+    if (!cfg) {
+      updateSyncUI('off');
+      return;
+    }
+
+    const gistId = cleanGistId(cfg.gistId);
+    const token = cleanToken(cfg.token);
+    if (!gistId || !token) {
+      updateSyncUI('off');
+      return;
+    }
+
+    if (isSyncing) return;
+    isSyncing = true;
+    updateSyncUI('syncing');
+    if (showModalFeedback) setSyncFeedback('info', 'Uploading local data to GitHub Gist...');
+
+    try {
+      const payload = {
+        description: 'SakuraBudget 2027 — Japan WHV Budget Planner Data',
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(appState, null, 2)
+          }
+        }
+      };
+
+      const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        let errDetail = `HTTP ${res.status}`;
+        if (res.status === 401) {
+          errDetail = '401 Unauthorized: Invalid or expired GitHub Token (ensure it has "gist" scope).';
+        } else if (res.status === 404) {
+          errDetail = '404 Not Found: GitHub could not find this Gist. Note: GitHub returns 404 if the Gist ID is wrong, OR if your token lacks the "gist" scope (GitHub hides secret gists behind 404 if unpermitted), OR if you used a Fine-Grained token (you must use a Classic PAT).';
+        }
+        throw new Error(errDetail);
+      }
+
+      cfg.gistId = gistId;
+      cfg.token = token;
+      cfg.lastSyncedAt = new Date().toISOString();
+      saveSyncConfig(cfg);
+
+      updateSyncUI('synced', `Synced: ${new Date(cfg.lastSyncedAt).toLocaleTimeString()}`);
+
+      if (showModalFeedback) {
+        setSyncFeedback('success', '✓ Successfully pushed your budget data to GitHub Gist!');
+      }
+    } catch (err) {
+      console.error('Gist Push Error:', err);
+      updateSyncUI('error', err.message);
+      if (showModalFeedback) {
+        setSyncFeedback('error', `Failed to push to Gist: ${err.message}`);
+      }
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  function queueCloudSync() {
+    const cfg = getSyncConfig();
+    if (!cfg || !cfg.gistId || !cfg.token) return;
+
+    clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(() => {
+      syncPush(false).catch(err => console.error('Cloud auto-sync error:', err));
+    }, 1500);
   }
 
   // --------------------------------------------------------------------------
@@ -1170,6 +1516,142 @@
       e.preventDefault();
       saveTransactionFromModal();
     });
+
+    // GitHub Gist Cloud Sync Modal
+    function openSyncModal() {
+      const cfg = getSyncConfig();
+      setSyncFeedback('', '');
+      if (cfg) {
+        if (DOM.inputGistId) DOM.inputGistId.value = cfg.gistId || '';
+        if (DOM.inputGithubToken) DOM.inputGithubToken.value = cfg.token || '';
+      }
+      updateSyncUI(cfg && cfg.gistId && cfg.token ? (cfg.lastSyncedAt ? 'synced' : 'off') : 'off');
+      if (DOM.syncModal) {
+        try {
+          if (!DOM.syncModal.open) {
+            DOM.syncModal.showModal();
+          }
+        } catch (err) {
+          console.warn('showModal fallback:', err);
+          DOM.syncModal.setAttribute('open', '');
+        }
+      }
+    }
+
+    if (DOM.syncModalBtn) {
+      DOM.syncModalBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSyncModal();
+      });
+    }
+
+    if (DOM.toggleTokenVisibilityBtn && DOM.inputGithubToken) {
+      DOM.toggleTokenVisibilityBtn.addEventListener('click', () => {
+        const isPassword = DOM.inputGithubToken.type === 'password';
+        DOM.inputGithubToken.type = isPassword ? 'text' : 'password';
+        DOM.toggleTokenVisibilityBtn.textContent = isPassword ? '🙈' : '👁️';
+      });
+    }
+
+    if (DOM.syncConfigForm) {
+      DOM.syncConfigForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rawGistId = (DOM.inputGistId ? DOM.inputGistId.value : '').trim();
+        const rawToken = (DOM.inputGithubToken ? DOM.inputGithubToken.value : '').trim();
+
+        const gistId = cleanGistId(rawGistId);
+        const token = cleanToken(rawToken);
+
+        if (!token) {
+          setSyncFeedback('error', 'Please enter your GitHub Personal Access Token.');
+          if (DOM.inputGithubToken) DOM.inputGithubToken.focus();
+          return;
+        }
+
+        if (!gistId) {
+          // If no Gist ID entered, auto-create a Secret Gist!
+          setSyncFeedback('info', 'No Gist ID entered. Automatically creating a private Secret Gist for you...');
+          try {
+            const newGistId = await createSecretGist(token);
+            if (DOM.inputGistId) DOM.inputGistId.value = newGistId;
+            const cfg = getSyncConfig() || {};
+            cfg.gistId = newGistId;
+            cfg.token = token;
+            cfg.lastSyncedAt = new Date().toISOString();
+            saveSyncConfig(cfg);
+            updateSyncUI('synced', `Synced: ${new Date().toLocaleTimeString()}`);
+            setSyncFeedback('success', `✓ Created new Secret Gist (ID: ${newGistId}) and uploaded your budget!`);
+            return;
+          } catch (err) {
+            setSyncFeedback('error', `Failed to create Gist: ${err.message}`);
+            return;
+          }
+        }
+
+        if (DOM.inputGistId) DOM.inputGistId.value = gistId;
+        if (DOM.inputGithubToken) DOM.inputGithubToken.value = token;
+
+        const currentCfg = getSyncConfig() || {};
+        currentCfg.gistId = gistId;
+        currentCfg.token = token;
+        saveSyncConfig(currentCfg);
+
+        // Test connection by pulling latest from Gist or pushing
+        await syncPull(true);
+      });
+    }
+
+    if (DOM.autoCreateGistBtn) {
+      DOM.autoCreateGistBtn.addEventListener('click', async () => {
+        const rawToken = (DOM.inputGithubToken ? DOM.inputGithubToken.value : '').trim();
+        const token = cleanToken(rawToken);
+
+        if (!token) {
+          setSyncFeedback('error', 'Please paste your GitHub Personal Access Token first so we can create the Gist on your account.');
+          if (DOM.inputGithubToken) DOM.inputGithubToken.focus();
+          return;
+        }
+
+        setSyncFeedback('info', 'Creating a private Secret Gist on your GitHub account...');
+        try {
+          const newGistId = await createSecretGist(token);
+          if (DOM.inputGistId) DOM.inputGistId.value = newGistId;
+          const cfg = getSyncConfig() || {};
+          cfg.gistId = newGistId;
+          cfg.token = token;
+          cfg.lastSyncedAt = new Date().toISOString();
+          saveSyncConfig(cfg);
+          updateSyncUI('synced', `Synced: ${new Date().toLocaleTimeString()}`);
+          setSyncFeedback('success', `✓ Successfully created Secret Gist (ID: ${newGistId}) and synced your budget!`);
+        } catch (err) {
+          setSyncFeedback('error', `Failed to create Gist: ${err.message}`);
+        }
+      });
+    }
+
+    if (DOM.disconnectSyncBtn) {
+      DOM.disconnectSyncBtn.addEventListener('click', () => {
+        if (confirm('Disconnect GitHub Gist Cloud Sync? Your local budget data will NOT be deleted, but auto-syncing will stop.')) {
+          clearSyncConfig();
+          if (DOM.inputGistId) DOM.inputGistId.value = '';
+          if (DOM.inputGithubToken) DOM.inputGithubToken.value = '';
+          setSyncFeedback('info', 'Disconnected from GitHub Gist.');
+          updateSyncUI('off');
+        }
+      });
+    }
+
+    if (DOM.manualPullBtn) {
+      DOM.manualPullBtn.addEventListener('click', () => {
+        syncPull(true);
+      });
+    }
+
+    if (DOM.manualPushBtn) {
+      DOM.manualPushBtn.addEventListener('click', () => {
+        syncPush(true);
+      });
+    }
   }
 
   function updateTxModalCategories(type) {
@@ -1516,17 +1998,55 @@
       else if (tabKey === 'recurring' && DOM.tabRecurring) DOM.tabRecurring.click();
       else if (tabKey === 'roadmap' && DOM.tabRoadmap) DOM.tabRoadmap.click();
       else if (tabKey === 'budgets' && DOM.tabBudgets) DOM.tabBudgets.click();
+    },
+    openSyncModal: function () {
+      const cfg = getSyncConfig();
+      setSyncFeedback('', '');
+      if (cfg) {
+        if (DOM.inputGistId) DOM.inputGistId.value = cfg.gistId || '';
+        if (DOM.inputGithubToken) DOM.inputGithubToken.value = cfg.token || '';
+      }
+      updateSyncUI(cfg && cfg.gistId && cfg.token ? (cfg.lastSyncedAt ? 'synced' : 'off') : 'off');
+      if (DOM.syncModal) {
+        try {
+          if (!DOM.syncModal.open) DOM.syncModal.showModal();
+        } catch (e) {
+          DOM.syncModal.setAttribute('open', '');
+        }
+      }
+    },
+    syncPull: function (feedback) {
+      return syncPull(feedback);
+    },
+    syncPush: function (feedback) {
+      return syncPush(feedback);
     }
   };
+  window.SakuraBudget = window.SakuraApp;
 
   // --------------------------------------------------------------------------
   // Initialize App
   // --------------------------------------------------------------------------
-  document.addEventListener('DOMContentLoaded', () => {
+  function boot() {
     initTabs();
     initModals();
     initEvents();
     renderApp();
-  });
+
+    // Initialize GitHub Gist Cloud Sync if configured
+    const syncCfg = getSyncConfig();
+    if (syncCfg && syncCfg.gistId && syncCfg.token) {
+      updateSyncUI(syncCfg.lastSyncedAt ? 'synced' : 'syncing');
+      syncPull(false);
+    } else {
+      updateSyncUI('off');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 
 })();

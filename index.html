@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261009_v2">
 </head>
 
 <body>
@@ -54,6 +54,13 @@
         <!-- Preset Load / Reset Menu -->
         <button id="presetBtn" class="btn btn-secondary btn-sm" title="Load realistic Japan WHV example schedule">
           <span>⚡ Load Example Plan</span>
+        </button>
+
+        <!-- GitHub Gist Cloud Sync -->
+        <button id="syncModalBtn" class="btn btn-secondary btn-sm" title="Cloud Sync via GitHub Gist"
+          onclick="window.SakuraBudget ? window.SakuraBudget.openSyncModal() : document.getElementById('syncModal').showModal()">
+          <span class="sync-status-dot dot-off" id="syncStatusDot"></span>
+          <span id="syncStatusLabel">☁️ Cloud: Off</span>
         </button>
       </div>
     </div>
@@ -618,6 +625,58 @@
     </div>
   </dialog>
 
+  <!-- GitHub Gist Cloud Sync Modal -->
+  <dialog id="syncModal" class="app-dialog" aria-labelledby="syncModalTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="syncModalTitle" class="dialog-title">☁️ GitHub Gist Cloud Sync</h3>
+        <button type="button" class="dialog-close-btn" data-close="syncModal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <form id="syncConfigForm" method="dialog">
+        <p class="sync-description">
+          Sync your budget seamlessly across devices using a private, encrypted <strong>Secret GitHub Gist</strong>.
+          Your credentials are saved strictly in this browser's local storage and never sent to any third-party server.
+        </p>
+
+        <div class="form-group">
+          <label for="inputGistId">Gist ID or URL</label>
+          <input type="text" id="inputGistId" class="form-control font-mono"
+            placeholder="e.g. 7f8a9b0c1d2e3f4a5b6c or https://gist.github.com/..." autocomplete="off" spellcheck="false">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem; flex-wrap: wrap; gap: 0.25rem;">
+            <small class="helper-text">Accepts raw ID or full Gist URL</small>
+            <button type="button" id="autoCreateGistBtn" class="btn-link" style="font-size: 0.72rem; color: var(--cli-blue); text-decoration: underline; cursor: pointer; padding: 0;">
+              🪄 Don't have one? Create Secret Gist for me
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputGithubToken">Personal Access Token (classic)</label>
+          <div class="input-with-button">
+            <input type="password" id="inputGithubToken" class="form-control font-mono"
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required autocomplete="off" spellcheck="false">
+            <button type="button" id="toggleTokenVisibilityBtn" class="btn btn-secondary btn-sm" title="Toggle visibility">👁️</button>
+          </div>
+          <small class="helper-text">Requires only <code>gist</code> scope permission.</small>
+        </div>
+
+        <div id="syncFeedbackBox" class="sync-feedback-box hidden" role="alert"></div>
+
+        <div class="sync-status-details" id="syncStatusDetails">
+          <span class="sync-detail-label">Status:</span>
+          <span id="syncDetailText" class="sync-detail-value">Not Connected</span>
+        </div>
+
+        <div class="dialog-actions sync-dialog-actions">
+          <button type="button" class="btn btn-secondary" data-close="syncModal">Close</button>
+          <button type="button" id="disconnectSyncBtn" class="btn btn-outline-danger hidden">Disconnect</button>
+          <button type="button" id="manualPullBtn" class="btn btn-secondary hidden" title="Fetch latest from Gist">⬇️ Pull</button>
+          <button type="button" id="manualPushBtn" class="btn btn-secondary hidden" title="Upload local to Gist">⬆️ Push</button>
+          <button type="submit" id="saveSyncConfigBtn" class="btn btn-primary">Connect &amp; Sync</button>
+        </div>
+      </form>
+    </div>
   </dialog>
 
   <!-- Footer -->
@@ -639,7 +698,7 @@
   <input type="file" id="importFileInput" accept=".json" style="display: none;">
 
   <!-- Scripts -->
-  <script src="app.js"></script>
+  <script src="app.js?v=20261009_v3"></script>
 </body>
 
 </html>
