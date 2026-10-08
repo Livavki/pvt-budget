@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SakuraBudget 2027 — Japan Working Holiday Visa Budget Calculator (EUR)</title>
+  <meta name="description"
+    content="Monthly budget planner and savings goal calculator for a Working Holiday Visa (PVT) in Japan. Plan advance monthly spending from October 2026 to June 2027 in Euros.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon-box">
+          <span class="brand-icon">🌸</span>
+        </div>
+        <div>
+          <div class="brand-badge">JAPAN WHV • PVT JAPON (OCT 2026 – JUN 2027)</div>
+          <h1 class="brand-title">SakuraBudget <span class="year-highlight">2027</span></h1>
+          <p class="brand-subtitle">Plan your savings month-by-month for departure in June 2027</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- Target Countdown Badge -->
+        <div class="countdown-card" id="countdownCard" title="Target Deadline: June 30, 2027">
+          <div class="countdown-icon">⏳</div>
+          <div class="countdown-info">
+            <span class="countdown-label">DEPARTURE DEADLINE</span>
+            <span class="countdown-val" id="countdownDisplay">June 2027 (9 Months)</span>
+          </div>
+        </div>
+
+        <!-- Currency Badge (Strictly Euro) -->
+        <div class="currency-badge-pill" title="All calculations are in Euro (€)">
+          <span class="currency-euro-icon">💶</span>
+          <span>Currency: <strong>EUR (€)</strong></span>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="btn-icon theme-btn" title="Toggle Theme" aria-label="Toggle Dark/Light Mode">
+          <span class="theme-icon">🌙</span>
+        </button>
+
+        <!-- Preset Load / Reset Menu -->
+        <button id="presetBtn" class="btn btn-secondary btn-sm" title="Load realistic Japan WHV example schedule">
+          <span>⚡ Load Example Plan</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero Goal & Countdown Banner Card -->
+    <section class="hero-banner-section" aria-labelledby="hero-title">
+      <div class="hero-card">
+        <div class="hero-background-art" style="background-image: url('assets/japan_banner.jpg');"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="hero-top-row">
+            <div class="hero-badge-row">
+              <span class="pill-tag pill-gold">🎯 Target Deadline: June 30, 2027</span>
+              <span class="pill-tag pill-japan">🛂 WHV Visa Secured</span>
+              <span class="pill-tag" id="paceStatusPill">Pace Status</span>
+            </div>
+            <div class="hero-quick-actions">
+              <button id="editGoalBtn" class="btn btn-glass btn-sm">⚙️ Edit Savings Goal</button>
+              <button id="quickAddSavedBtn" class="btn btn-primary btn-sm">➕ Adjust Initial Savings</button>
+            </div>
+          </div>
+
+          <div class="hero-stats-grid">
+            <!-- Goal & Saved Numbers -->
+            <div class="hero-stat-box">
+              <span class="hero-stat-label">TARGET SAVINGS GOAL</span>
+              <div class="hero-stat-val-group">
+                <span class="hero-stat-val" id="displayGoalAmount">€6,500.00</span>
+              </div>
+              <p class="hero-stat-desc">For flights, initial sharehouse deposit, rent & safety buffer</p>
+            </div>
+
+            <div class="hero-stat-box">
+              <span class="hero-stat-label">INITIAL SAVINGS (OCT 1, 2026)</span>
+              <div class="hero-stat-val-group">
+                <span class="hero-stat-val text-accent" id="displayCurrentSaved">€2,800.00</span>
+              </div>
+              <div class="hero-progress-meta">
+                <span id="savingsProgressPercent">43.1% of target</span>
+                <span id="savingsRemainingAmount">€3,700.00 remaining</span>
+              </div>
+            </div>
+
+            <!-- Required vs Scheduled Monthly Savings -->
+            <div class="hero-stat-box highlight-box" id="paceCompareBox">
+              <div class="pace-row">
+                <div>
+                  <span class="hero-stat-label">REQUIRED SAVINGS / MONTH</span>
+                  <div class="stat-number-sm" id="displayRequiredMonthly">€411.11<span class="unit">/mo</span></div>
+                  <span class="stat-sub-sm">To reach goal by June 2027</span>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div>
+                  <span class="hero-stat-label">AVG SCHEDULED NET / MONTH</span>
+                  <div class="stat-number-sm" id="displayActualMonthlyNet">€413.33<span class="unit">/mo</span></div>
+                  <span class="stat-sub-sm" id="displayTotalProjectedAtJune">June '27 total: €6,520</span>
+                </div>
+              </div>
+
+              <!-- Pace Delta Indicator -->
+              <div class="pace-delta-banner" id="paceDeltaBanner">
+                <span id="paceDeltaIcon">✅</span>
+                <span id="paceDeltaText">On Track: Scheduled to reach €6,520 by June 2027 (+€20 surplus)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overall Linear Goal Progress Bar -->
+          <div class="goal-progress-wrap">
+            <div class="goal-progress-bar-bg">
+              <div class="goal-progress-bar-fill" id="goalProgressBar" style="width: 43%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CRITICAL ALERTS & WARNINGS SECTION (DYNAMIC) -->
+    <section class="alerts-container" id="alertsContainer" aria-live="polite">
+      <!-- Alerts are dynamically rendered via app.js -->
+    </section>
+
+    <!-- 9-MONTH TIMELINE & ADVANCE SPENDING NAVIGATOR -->
+    <section class="timeline-navigator-section">
+      <div class="card timeline-card">
+        <div class="timeline-header-row">
+          <div>
+            <div class="card-pretitle">MONTH-BY-MONTH PLANNING (OCTOBER 2026 → JUNE 2027)</div>
+            <h2 class="card-title">Select a Month to Plan Spending & Incomes in Advance</h2>
+          </div>
+          <div class="timeline-meta-summary">
+            <span class="active-month-pill" id="activeMonthIndicator">Active: October 2026</span>
+            <button id="addAdvanceItemBtn" class="btn btn-primary btn-sm">➕ Add Item to This Month</button>
+          </div>
+        </div>
+
+        <!-- 9 Months Cards Strip -->
+        <div class="months-strip-container" id="monthsStripContainer" role="tablist" aria-label="9 Months Navigation">
+          <!-- Dynamically populated with 9 month buttons (Oct 2026 to Jun 2027) -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Selected Month Metrics Grid -->
+    <section class="metrics-section">
+      <div class="metrics-grid">
+        <!-- Metric 1: Selected Month Income -->
+        <div class="metric-card">
+          <div class="metric-icon-wrap bg-emerald">
+            <span>📥</span>
+          </div>
+          <div class="metric-body">
+            <span class="metric-title" id="lblSelectedMonthIncome">Oct 2026 Income</span>
+            <div class="metric-val text-emerald" id="metricSelectedIncome">€2,200.00</div>
+            <span class="metric-foot" id="metricIncomeCount">3 income sources planned</span>
+          </div>
+        </div>
+
+        <!-- Metric 2: Selected Month Expenses -->
+        <div class="metric-card">
+          <div class="metric-icon-wrap bg-rose">
+            <span>📤</span>
+          </div>
+          <div class="metric-body">
+            <span class="metric-title" id="lblSelectedMonthExpense">Oct 2026 Expenses</span>
+            <div class="metric-val text-rose" id="metricSelectedExpense">€1,780.00</div>
+            <span class="metric-foot" id="metricBudgetVsSpend">Budget: €1,750.00</span>
+          </div>
+        </div>
+
+        <!-- Metric 3: Selected Month Net Saved -->
+        <div class="metric-card">
+          <div class="metric-icon-wrap bg-indigo">
+            <span>💰</span>
+          </div>
+          <div class="metric-body">
+            <span class="metric-title" id="lblSelectedMonthNet">Oct 2026 Net Savings</span>
+            <div class="metric-val text-indigo" id="metricSelectedNet">+€420.00</div>
+            <span class="metric-foot" id="metricSelectedNetStatus">Cashflow Positive</span>
+          </div>
+        </div>
+
+        <!-- Metric 4: Cumulative Saved at End of This Month -->
+        <div class="metric-card">
+          <div class="metric-icon-wrap bg-gold">
+            <span>📈</span>
+          </div>
+          <div class="metric-body">
+            <span class="metric-title" id="lblCumulativeAtMonth">Cumulative Saved by Oct '26</span>
+            <div class="metric-val text-gold" id="metricCumulativeAtMonth">€3,220.00</div>
+            <span class="metric-foot" id="metricCumulativeProgress">49.5% towards €6,500 goal</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics & Projections Row -->
+    <section class="analytics-section">
+      <div class="analytics-grid">
+        <!-- Trajectory Chart (SVG) across all 9 months -->
+        <div class="card analytics-card">
+          <div class="card-header">
+            <div>
+              <div class="card-pretitle">9-MONTH ACCUMULATION TRAJECTORY</div>
+              <h2 class="card-title">Cumulative Savings Path (Oct 2026 → June 2027)</h2>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-dot dot-target"></span> Target Goal Path (€6.5k)</span>
+              <span class="legend-item"><span class="legend-dot dot-actual"></span> Your Scheduled Path</span>
+            </div>
+          </div>
+          <div class="chart-container" id="trajectoryChartContainer">
+            <!-- Dynamic SVG chart injected here -->
+            <div id="chartTooltip" class="chart-tooltip hidden"></div>
+          </div>
+          <div class="chart-footer-note" id="chartFooterNote">
+            <span>💡 <strong>Scheduled Trajectory:</strong> Based on your monthly inputs from October 2026 to June
+              2027.</span>
+          </div>
+        </div>
+
+        <!-- Category Spending Distribution for Selected Month -->
+        <div class="card analytics-card donut-analytics-card">
+          <div class="card-header">
+            <div>
+              <div class="card-pretitle" id="lblDonutMonthPre">SPENDING BREAKDOWN</div>
+              <h2 class="card-title" id="lblDonutTitle">Expenses by Category</h2>
+            </div>
+            <div class="donut-scope-picker">
+              <select id="donutScopeSelect" class="form-control form-control-sm">
+                <option value="selected" selected>Selected Month</option>
+                <option value="all">All 9 Months Total</option>
+              </select>
+            </div>
+          </div>
+          <div class="donut-chart-wrapper">
+            <div class="donut-svg-container" id="donutSvgContainer">
+              <!-- SVG Donut Chart injected here -->
+            </div>
+            <div class="donut-legend-container" id="donutLegendContainer">
+              <!-- Legend items injected here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Master Tables & 9-Month Roadmap Section -->
+    <section class="budget-tables-section">
+      <div class="card table-card">
+        <div class="table-card-header">
+          <div class="tab-buttons" role="tablist">
+            <button class="tab-btn active" data-tab="expenses" role="tab" aria-selected="true" id="tabExpenses">
+              <span>📤 Monthly Expenses</span>
+              <span class="tab-count" id="expensesCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="income" role="tab" aria-selected="false" id="tabIncome">
+              <span>📥 Monthly Income</span>
+              <span class="tab-count" id="incomeCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="recurring" role="tab" aria-selected="false" id="tabRecurring">
+              <span>🔁 Fixed / Recurring</span>
+              <span class="tab-count" id="recurringCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="roadmap" role="tab" aria-selected="false" id="tabRoadmap">
+              <span>📅 9-Month Full Roadmap</span>
+            </button>
+            <button class="tab-btn" data-tab="budgets" role="tab" aria-selected="false" id="tabBudgets">
+              <span>📊 Category Budgets & Warnings</span>
+            </button>
+          </div>
+
+          <div class="table-actions">
+            <!-- Filter by Month or All -->
+            <div class="table-month-filter">
+              <label for="tableMonthFilterSelect" class="visually-hidden">Filter Month</label>
+              <select id="tableMonthFilterSelect" class="table-select-filter">
+                <option value="selected">Viewing: Active Month</option>
+                <option value="all">Viewing: All 9 Months</option>
+              </select>
+            </div>
+
+            <div class="search-input-wrap">
+              <input type="text" id="filterSearchInput" placeholder="Search items..." class="table-search-input">
+            </div>
+            <button id="addTransactionBtn" class="btn btn-primary">
+              <span>➕ Add Item</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 1: Expenses Content -->
+        <div class="tab-panel active" id="panelExpenses" role="tabpanel">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Budget Limit (€)</th>
+                  <th>Spent (€)</th>
+                  <th>Budget Status</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody">
+                <!-- Dynamically filled -->
+              </tbody>
+              <tfoot id="expensesTableFoot">
+                <!-- Dynamically filled -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Income Content -->
+        <div class="tab-panel" id="panelIncome" role="tabpanel">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Category</th>
+                  <th>Source / Description</th>
+                  <th>Planned Income (€)</th>
+                  <th>Type</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incomeTableBody">
+                <!-- Dynamically filled -->
+              </tbody>
+              <tfoot id="incomeTableFoot">
+                <!-- Dynamically filled -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Fixed / Recurring Items Content -->
+        <div class="tab-panel" id="panelRecurring" role="tabpanel">
+          <div class="recurring-intro-banner">
+            <div>
+              <strong>🔁 Fixed Expenses & Incomes:</strong> These are repeating monthly budget items (such as Rent,
+              Salary, Internet, Utilities) that occur regularly every month from October 2026 to June 2027. Adjusting an
+              amount here updates all 9 months automatically!
+            </div>
+            <button class="btn btn-primary btn-sm" id="addFixedItemDirectBtn">➕ Add Fixed Recurring Item</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Item Description</th>
+                  <th>Monthly Amount (€)</th>
+                  <th>Monthly Budget Limit (€)</th>
+                  <th>9-Month Total (€)</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recurringTableBody">
+                <!-- Dynamically filled with unique recurring items -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: 9-Month Full Roadmap Matrix -->
+        <div class="tab-panel" id="panelRoadmap" role="tabpanel">
+          <div class="roadmap-intro-banner">
+            <div>
+              <strong>Complete 9-Month Financial Schedule (October 2026 – June 2027):</strong> Review your scheduled
+              inflow, outflow, and cumulative balance as you prepare for departure in June 2027.
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table roadmap-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Planned Income (€)</th>
+                  <th>Planned Expenses (€)</th>
+                  <th>Net Monthly Savings (€)</th>
+                  <th>Cumulative Total (€)</th>
+                  <th>Target Trajectory (€)</th>
+                  <th>Pace Status</th>
+                  <th class="text-right">Quick Action</th>
+                </tr>
+              </thead>
+              <tbody id="roadmapTableBody">
+                <!-- Dynamically filled with the 9 months -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Category Budgets Overview -->
+        <div class="tab-panel" id="panelBudgets" role="tabpanel">
+          <div class="category-budgets-grid" id="categoryBudgetsGrid">
+            <!-- Category budget cards with spend vs budget progress bars rendered here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODALS -->
+
+  <!-- Modal 1: Edit Goal & Deadline Modal -->
+  <dialog id="goalModal" class="app-dialog" aria-labelledby="goalModalTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="goalModalTitle">🎯 Configure Savings Goal & Timeline</h3>
+        <button type="button" class="dialog-close-btn" data-close="goalModal" aria-label="Close dialog">✕</button>
+      </div>
+      <form id="goalForm" method="dialog">
+        <div class="form-group">
+          <label for="inputSavingsGoal">Target Savings Goal Amount (€):</label>
+          <div class="input-with-addon">
+            <input type="number" id="inputSavingsGoal" min="500" step="50" required class="form-control" value="6500">
+            <span class="input-addon">EUR (€)</span>
+          </div>
+          <small class="helper-text">Recommended for Japan WHV: 5,500 € to 7,500 € for a secure arrival buffer.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="inputCurrentSaved">Initial Starting Savings (October 1, 2026):</label>
+          <div class="input-with-addon">
+            <input type="number" id="inputCurrentSaved" min="0" step="50" required class="form-control" value="2800">
+            <span class="input-addon">EUR (€)</span>
+          </div>
+          <small class="helper-text">Your initial saved capital at the start of October 2026.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="inputDeadlineDate">Target Departure Deadline:</label>
+          <input type="date" id="inputDeadlineDate" value="2027-06-30" required class="form-control">
+          <small class="helper-text">Deadline set to June 30, 2027.</small>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" data-close="goalModal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Goal Changes</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Modal 2: Quick Adjust Initial Savings Modal -->
+  <dialog id="quickAddModal" class="app-dialog" aria-labelledby="quickAddModalTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="quickAddModalTitle">➕ Adjust Initial Savings (Oct 1, 2026)</h3>
+        <button type="button" class="dialog-close-btn" data-close="quickAddModal" aria-label="Close dialog">✕</button>
+      </div>
+      <form id="quickAddForm" method="dialog">
+        <div class="form-group">
+          <label for="quickAddAmount">Set or Add to Initial Savings (€):</label>
+          <div class="input-with-addon">
+            <input type="number" id="quickAddAmount" min="0" step="50" required class="form-control"
+              placeholder="e.g. 2800">
+            <span class="input-addon">EUR (€)</span>
+          </div>
+        </div>
+        <div class="quick-preset-chips">
+          <button type="button" class="chip-btn" data-set="2000">Set 2,000 €</button>
+          <button type="button" class="chip-btn" data-set="2800">Set 2,800 €</button>
+          <button type="button" class="chip-btn" data-set="3500">Set 3,500 €</button>
+          <button type="button" class="chip-btn" data-set="4000">Set 4,000 €</button>
+          <button type="button" class="chip-btn" data-set="5000">Set 5,000 €</button>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" data-close="quickAddModal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Starting Savings</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Modal 3: Add / Edit Transaction Modal (With Target Month) -->
+  <dialog id="transactionModal" class="app-dialog" aria-labelledby="txModalTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="txModalTitle">➕ Add Budget Item</h3>
+        <button type="button" class="dialog-close-btn" data-close="transactionModal"
+          aria-label="Close dialog">✕</button>
+      </div>
+      <form id="transactionForm" method="dialog">
+        <input type="hidden" id="txId">
+        <input type="hidden" id="txRecurringKey">
+
+        <!-- Recurrence Frequency Setting -->
+        <div class="form-group" id="frequencyGroup">
+          <label>Schedule Frequency:</label>
+          <div class="radio-segment-group">
+            <label class="radio-segment">
+              <input type="radio" name="txFrequency" value="recurring" id="freqRecurring" checked>
+              <span>🔁 Fixed Recurring (All 9 Months)</span>
+            </label>
+            <label class="radio-segment">
+              <input type="radio" name="txFrequency" value="single" id="freqSingle">
+              <span>📅 Specific Month (One-Off)</span>
+            </label>
+          </div>
+          <small class="helper-text" id="freqHelperText">Fixed items (like Rent or Salary) automatically repeat every
+            month from Oct 2026 to Jun 2027.</small>
+        </div>
+
+        <!-- Edit Scope Setting (Shown only when editing an item) -->
+        <div class="form-group" id="editScopeGroup" style="display: none;">
+          <label>Apply Changes To:</label>
+          <div class="radio-segment-group">
+            <label class="radio-segment">
+              <input type="radio" name="txEditScope" value="all" id="editScopeAll" checked>
+              <span>🔁 ALL 9 Months (Fixed Expense)</span>
+            </label>
+            <label class="radio-segment">
+              <input type="radio" name="txEditScope" value="single" id="editScopeSingle">
+              <span>📅 This Month Only</span>
+            </label>
+          </div>
+          <small class="helper-text">Select "ALL 9 Months" to change Rent or fixed costs across the entire schedule at
+            once!</small>
+        </div>
+
+        <div class="form-group">
+          <label>Item Type:</label>
+          <div class="radio-segment-group">
+            <label class="radio-segment">
+              <input type="radio" name="txType" value="expense" checked id="typeExpense">
+              <span>📤 Expense</span>
+            </label>
+            <label class="radio-segment">
+              <input type="radio" name="txType" value="income" id="typeIncome">
+              <span>📥 Income</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Target Month Selection (Only shown when Specific Month is selected) -->
+        <div class="form-group" id="monthSelectGroup" style="display: none;">
+          <label for="txMonth">Target Month (Oct 2026 – Jun 2027):</label>
+          <select id="txMonth" class="form-control" required>
+            <option value="2026-10">October 2026</option>
+            <option value="2026-11">November 2026</option>
+            <option value="2026-12">December 2026</option>
+            <option value="2027-01">January 2027</option>
+            <option value="2027-02">February 2027</option>
+            <option value="2027-03">March 2027</option>
+            <option value="2027-04">April 2027</option>
+            <option value="2027-05">May 2027</option>
+            <option value="2027-06">June 2027 (Departure)</option>
+          </select>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="txTitle">Item Description / Name:</label>
+            <input type="text" id="txTitle" required class="form-control"
+              placeholder="e.g. Rent, Groceries, Flight Ticket, Salary">
+          </div>
+
+          <div class="form-group">
+            <label for="txCategory">Category:</label>
+            <select id="txCategory" class="form-control" required>
+              <!-- Filled dynamically based on type -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="txAmount" id="txAmountLabel">Amount (€):</label>
+            <div class="input-with-addon">
+              <input type="number" id="txAmount" min="0" step="0.01" required class="form-control" placeholder="0.00">
+              <span class="input-addon">EUR (€)</span>
+            </div>
+          </div>
+
+          <div class="form-group" id="budgetLimitGroup">
+            <label for="txBudgetLimit">Monthly Budget Limit (€):</label>
+            <div class="input-with-addon">
+              <input type="number" id="txBudgetLimit" min="0" step="0.01" class="form-control"
+                placeholder="Optional budget limit">
+              <span class="input-addon">EUR (€)</span>
+            </div>
+            <small class="helper-text">Triggers a warning if actual spend exceeds this!</small>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" data-close="transactionModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="txSaveBtn">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  </dialog>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-text">
+        <span>SakuraBudget 2027 • Japan Working Holiday Visa Budget Planner (October 2026 – June 2027)</span>
+        <span class="footer-sub">All calculations in EUR (€). Data stored safely in your browser storage.</span>
+      </div>
+      <div class="footer-links">
+        <button id="exportDataBtn" class="btn-link">💾 Export JSON</button>
+        <button id="importDataBtn" class="btn-link">📂 Import JSON</button>
+        <button id="resetDefaultsBtn" class="btn-link text-danger">🔄 Reset to Defaults</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+
+</html>
