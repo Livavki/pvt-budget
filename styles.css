@@ -652,6 +652,60 @@ strong { font-weight: 600; }
 .cat-card-title { display: flex; gap: 0.4rem; font-size: 0.78rem; font-weight: 600; }
 .cat-card-numbers { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); }
 .cat-card-numbers strong { color: var(--text-primary); font-weight: 400; }
+.budgets-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.budgets-header-desc {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0 0;
+}
+
+.category-budgets-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+@media (max-width: 600px) {
+  .category-budgets-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.category-budget-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.category-budget-input-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  color: var(--text-primary);
+}
+
+.category-budgets-total-pill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
 
 /* ==========================================================================
    Dialogs

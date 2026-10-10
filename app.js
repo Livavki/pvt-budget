@@ -57,6 +57,21 @@
     other_income: { name: 'Other Income', icon: '💵', color: '#84cc16' }
   };
 
+  const DEFAULT_CATEGORY_BUDGETS = {
+    housing: 850.00,
+    food: 420.00,
+    transport: 120.00,
+    utilities: 160.00,
+    leisure: 250.00,
+    health: 50.00,
+    shopping: 100.00,
+    flight: 850.00,
+    insurance: 450.00,
+    visa: 50.00,
+    gear: 200.00,
+    other_expense: 50.00
+  };
+
   // Helper to generate pre-populated items across the 9 months
   function createDefaultSchedule() {
     const items = [];
@@ -68,25 +83,25 @@
       items.push({ id: `inc_tut_${m}`, month: m, type: 'income', category: 'tutoring', title: 'Language Tutoring', amount: 50.00, isRecurring: true, recurringKey: 'rec_tutoring' });
 
       // Regular monthly expenses (Fixed recurring)
-      items.push({ id: `exp_rent_${m}`, month: m, type: 'expense', category: 'housing', title: 'Rent & Charges', amount: 850.00, budgetLimit: 850.00, isRecurring: true, recurringKey: 'rec_rent' });
-      items.push({ id: `exp_food_${m}`, month: m, type: 'expense', category: 'food', title: 'Groceries & Food', amount: 420.00, budgetLimit: 380.00, isRecurring: true, recurringKey: 'rec_food' });
-      items.push({ id: `exp_trans_${m}`, month: m, type: 'expense', category: 'transport', title: 'Transit Pass', amount: 110.00, budgetLimit: 120.00, isRecurring: true, recurringKey: 'rec_transport' });
-      items.push({ id: `exp_util_${m}`, month: m, type: 'expense', category: 'utilities', title: 'Phone, Fiber & Electricity', amount: 160.00, budgetLimit: 150.00, isRecurring: true, recurringKey: 'rec_utilities' });
-      items.push({ id: `exp_leis_${m}`, month: m, type: 'expense', category: 'leisure', title: 'Dining Out, Social & Coffee', amount: 250.00, budgetLimit: 250.00, isRecurring: true, recurringKey: 'rec_leisure' });
+      items.push({ id: `exp_rent_${m}`, month: m, type: 'expense', category: 'housing', title: 'Rent & Charges', amount: 850.00, isRecurring: true, recurringKey: 'rec_rent' });
+      items.push({ id: `exp_food_${m}`, month: m, type: 'expense', category: 'food', title: 'Groceries & Food', amount: 420.00, isRecurring: true, recurringKey: 'rec_food' });
+      items.push({ id: `exp_trans_${m}`, month: m, type: 'expense', category: 'transport', title: 'Transit Pass', amount: 110.00, isRecurring: true, recurringKey: 'rec_transport' });
+      items.push({ id: `exp_util_${m}`, month: m, type: 'expense', category: 'utilities', title: 'Phone, Fiber & Electricity', amount: 160.00, isRecurring: true, recurringKey: 'rec_utilities' });
+      items.push({ id: `exp_leis_${m}`, month: m, type: 'expense', category: 'leisure', title: 'Dining Out, Social & Coffee', amount: 250.00, isRecurring: true, recurringKey: 'rec_leisure' });
     });
 
     // Advance specific expenses (One-offs):
     // December 2026: Extra holiday season expenses
-    items.push({ id: 'exp_xmas_2026-12', month: '2026-12', type: 'expense', category: 'leisure', title: 'Holiday Gatherings & Gifts', amount: 180.00, budgetLimit: 150.00, isRecurring: false });
+    items.push({ id: 'exp_xmas_2026-12', month: '2026-12', type: 'expense', category: 'leisure', title: 'Holiday Gatherings & Gifts', amount: 180.00, isRecurring: false });
 
     // April 2027: Book flight to Tokyo
-    items.push({ id: 'exp_flight_2027-04', month: '2027-04', type: 'expense', category: 'flight', title: 'Round-trip Flight to Tokyo', amount: 850.00, budgetLimit: 850.00, isRecurring: false });
+    items.push({ id: 'exp_flight_2027-04', month: '2027-04', type: 'expense', category: 'flight', title: 'Round-trip Flight to Tokyo', amount: 850.00, isRecurring: false });
 
     // May 2027: WHV Insurance
-    items.push({ id: 'exp_ins_2027-05', month: '2027-05', type: 'expense', category: 'insurance', title: '1-Year WHV Health Insurance (Chapka)', amount: 450.00, budgetLimit: 450.00, isRecurring: false });
+    items.push({ id: 'exp_ins_2027-05', month: '2027-05', type: 'expense', category: 'insurance', title: '1-Year WHV Health Insurance (Chapka)', amount: 450.00, isRecurring: false });
 
     // June 2027: Departure luggage & travel accessories
-    items.push({ id: 'exp_gear_2027-06', month: '2027-06', type: 'expense', category: 'gear', title: 'Suitcase, Backpack & Power Converters', amount: 200.00, budgetLimit: 200.00, isRecurring: false });
+    items.push({ id: 'exp_gear_2027-06', month: '2027-06', type: 'expense', category: 'gear', title: 'Suitcase, Backpack & Power Converters', amount: 200.00, isRecurring: false });
 
     return items;
   }
@@ -98,6 +113,7 @@
       activeMonth: '2026-10', // Default active month: October 2026
       theme: 'dark'
     },
+    categoryBudgets: { ...DEFAULT_CATEGORY_BUDGETS },
     items: createDefaultSchedule()
   };
 
@@ -135,6 +151,7 @@
     // Quick Actions
     editGoalBtn: document.getElementById('editGoalBtn'),
     quickAddSavedBtn: document.getElementById('quickAddSavedBtn'),
+    heroCategoryBudgetsBtn: document.getElementById('heroCategoryBudgetsBtn'),
     addAdvanceItemBtn: document.getElementById('addAdvanceItemBtn'),
 
     // Dynamic Alerts
@@ -222,8 +239,6 @@
     txCategory: document.getElementById('txCategory'),
     txAmount: document.getElementById('txAmount'),
     txAmountLabel: document.getElementById('txAmountLabel'),
-    txBudgetLimit: document.getElementById('txBudgetLimit'),
-    budgetLimitGroup: document.getElementById('budgetLimitGroup'),
 
     // Footer actions
     exportDataBtn: document.getElementById('exportDataBtn'),
@@ -243,7 +258,15 @@
     manualPullBtn: document.getElementById('manualPullBtn'),
     manualPushBtn: document.getElementById('manualPushBtn'),
     saveSyncConfigBtn: document.getElementById('saveSyncConfigBtn'),
-    autoCreateGistBtn: document.getElementById('autoCreateGistBtn')
+    autoCreateGistBtn: document.getElementById('autoCreateGistBtn'),
+
+    // Category-Level Monthly Budgets
+    heroCategoryBudgetsBtn: document.getElementById('heroCategoryBudgetsBtn'),
+    openCategoryBudgetsModalBtn: document.getElementById('openCategoryBudgetsModalBtn'),
+    categoryBudgetsModal: document.getElementById('categoryBudgetsModal'),
+    categoryBudgetsForm: document.getElementById('categoryBudgetsForm'),
+    categoryBudgetsInputsContainer: document.getElementById('categoryBudgetsInputsContainer'),
+    categoryBudgetsTotalDisplay: document.getElementById('categoryBudgetsTotalDisplay')
   };
 
   // --------------------------------------------------------------------------
@@ -280,6 +303,7 @@
           : createDefaultSchedule();
         return {
           settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
+          categoryBudgets: { ...DEFAULT_CATEGORY_BUDGETS, ...(parsed.categoryBudgets || {}) },
           items: normalizeItems(rawItems)
         };
       }
@@ -660,7 +684,6 @@
 
       const incomeTotal = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
       const expenseTotal = expenses.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-      const expenseBudgetTotal = expenses.reduce((sum, i) => sum + (Number(i.budgetLimit) || Number(i.amount) || 0), 0);
 
       const netSavings = incomeTotal - expenseTotal;
       runningBalance += netSavings;
@@ -673,14 +696,25 @@
         negativeCashflowMonths.push({ month: mKey, name: MONTH_NAMES[mKey].full, deficit: Math.abs(netSavings) });
       }
 
-      // Check category overruns for this month
+      // Category-level monthly budgets & spending for this month
       const categoryTotals = {};
+      const catBudgets = appState.categoryBudgets || DEFAULT_CATEGORY_BUDGETS;
+
+      Object.keys(CATEGORY_META).forEach(cat => {
+        if (!['salary', 'freelance', 'tutoring', 'gift', 'other_income'].includes(cat)) {
+          categoryTotals[cat] = { spent: 0, budget: Number(catBudgets[cat]) || 0 };
+        }
+      });
+
       expenses.forEach(item => {
         const cat = item.category || 'other_expense';
-        if (!categoryTotals[cat]) categoryTotals[cat] = { spent: 0, budget: 0 };
+        if (!categoryTotals[cat]) {
+          categoryTotals[cat] = { spent: 0, budget: Number(catBudgets[cat]) || 0 };
+        }
         categoryTotals[cat].spent += Number(item.amount) || 0;
-        categoryTotals[cat].budget += Number(item.budgetLimit) || Number(item.amount) || 0;
       });
+
+      const expenseBudgetTotal = Object.values(categoryTotals).reduce((sum, c) => sum + (c.budget || 0), 0);
 
       if (mKey === activeMonth) {
         Object.keys(categoryTotals).forEach(cat => {
@@ -1167,17 +1201,15 @@
 
     DOM.expensesCount.textContent = expenses.length;
     DOM.expensesTableBody.innerHTML = expenses.length === 0
-      ? `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No expense items for this view.</td></tr>`
+      ? `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No expense items for this view.</td></tr>`
       : expenses.map(item => {
         const catMeta = CATEGORY_META[item.category] || CATEGORY_META.other_expense;
-        const budget = Number(item.budgetLimit) || 0;
         const spent = Number(item.amount) || 0;
-        const isExceeded = budget > 0 && spent > budget;
-        const rowClass = isExceeded ? 'row-danger' : '';
         const monthLabel = MONTH_NAMES[item.month]?.short || item.month;
+        const isRecurring = !!item.isRecurring;
 
         return `
-          <tr class="${rowClass}">
+          <tr>
             <td><span class="month-badge">${monthLabel}</span></td>
             <td>
               <span class="category-badge" style="border-left: 3px solid ${catMeta.color}">
@@ -1187,16 +1219,12 @@
             </td>
             <td>
               <strong>${escapeHtml(item.title)}</strong>
-              ${item.isRecurring ? '<span class="badge-recurring" title="Fixed repeating expense across all months">🔁 Fixed</span>' : ''}
             </td>
-            <td>${budget > 0 ? formatEUR(budget) : '<span style="color:var(--text-muted)">—</span>'}</td>
             <td><strong>${formatEUR(spent)}</strong></td>
             <td>
-              ${budget > 0
-            ? (isExceeded
-              ? `<span class="status-chip chip-danger">⚠️ +${formatEUR(spent - budget)} Over</span>`
-              : `<span class="status-chip chip-safe">✅ Within Limit</span>`)
-            : `<span class="status-chip" style="background:var(--bg-tertiary);color:var(--text-muted)">No Limit</span>`}
+              ${isRecurring
+                ? '<span class="badge-recurring" title="Fixed repeating expense across all months">🔁 Fixed Monthly</span>'
+                : '<span class="status-chip chip-neutral" style="color:var(--text-muted)">Single Month</span>'}
             </td>
             <td class="text-right">
               <div class="table-row-actions">
@@ -1209,12 +1237,10 @@
       }).join('');
 
     const totalExpensesAmount = expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    const totalExpensesBudget = expenses.reduce((sum, item) => sum + (Number(item.budgetLimit) || 0), 0);
     if (DOM.expensesTableFoot) {
       DOM.expensesTableFoot.innerHTML = expenses.length === 0 ? '' : `
         <tr style="background: var(--bg-tertiary); font-weight: bold;">
           <td colspan="3" class="text-right" style="text-align: right; padding-right: 1rem;">Total:</td>
-          <td>${totalExpensesBudget > 0 ? formatEUR(totalExpensesBudget) : '<span style="color:var(--text-muted)">—</span>'}</td>
           <td>${formatEUR(totalExpensesAmount)}</td>
           <td colspan="2"></td>
         </tr>
@@ -1372,20 +1398,30 @@
         const meta = CATEGORY_META[key] || CATEGORY_META.other_expense;
         const data = activeStats.categoryTotals[key];
         const isExceeded = data.budget > 0 && data.spent > data.budget;
-        const fillPercent = data.budget > 0 ? Math.min(100, (data.spent / data.budget) * 100) : 100;
+        const fillPercent = data.budget > 0 ? Math.min(100, (data.spent / data.budget) * 100) : (data.spent > 0 ? 100 : 0);
         const excess = data.spent - data.budget;
+        const remaining = data.budget - data.spent;
+
+        let statusChipHtml = '';
+        if (isExceeded) {
+          statusChipHtml = `<span class="status-chip chip-danger">⚠️ +${formatEUR(excess)} OVER</span>`;
+        } else if (data.budget > 0) {
+          statusChipHtml = `<span class="status-chip chip-safe">${fillPercent.toFixed(0)}% used</span>`;
+        } else if (data.spent > 0) {
+          statusChipHtml = `<span class="status-chip chip-warn">No Budget Set</span>`;
+        } else {
+          statusChipHtml = `<span class="status-chip" style="color:var(--text-muted)">Unused</span>`;
+        }
 
         return `
-          <div class="category-budget-card ${isExceeded ? 'budget-exceeded' : ''}">
+          <div class="category-budget-card ${isExceeded ? 'budget-exceeded' : ''}" style="cursor: pointer;" onclick="window.SakuraApp.openCategoryBudgetsModal('${key}')" title="Click to adjust monthly budget for ${meta.name}">
             <div class="cat-card-header">
               <div class="cat-card-title">
                 <span>${meta.icon}</span>
                 <span>${meta.name}</span>
               </div>
               <div>
-                ${isExceeded
-            ? `<span class="status-chip chip-danger">⚠️ +${formatEUR(excess)} OVER</span>`
-            : `<span class="status-chip chip-safe">${fillPercent.toFixed(0)}%</span>`}
+                ${statusChipHtml}
               </div>
             </div>
 
@@ -1395,7 +1431,11 @@
 
             <div class="cat-card-numbers">
               <span>Spent: <strong>${formatEUR(data.spent)}</strong></span>
-              <span>Limit: <strong>${data.budget > 0 ? formatEUR(data.budget) : 'None'}</strong></span>
+              <span>Budget: <strong>${data.budget > 0 ? formatEUR(data.budget) + '/mo' : 'None'}</strong></span>
+            </div>
+            <div class="cat-card-numbers" style="margin-top: -0.2rem; font-size: 0.69rem;">
+              <span>${isExceeded ? `<span style="color:var(--cli-red)">Over by ${formatEUR(excess)}</span>` : (data.budget > 0 ? `<span style="color:var(--cli-green)">Remaining: ${formatEUR(remaining)}</span>` : '<span style="color:var(--text-muted)">No monthly limit</span>')}</span>
+              <span style="color: var(--cli-blue); text-decoration: underline;">✏️ Edit Budget</span>
             </div>
           </div>
         `;
@@ -1652,6 +1692,97 @@
         syncPush(true);
       });
     }
+
+    // Category-Level Monthly Budgets Modal Events
+    if (DOM.categoryBudgetsForm) {
+      DOM.categoryBudgetsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newBudgets = {};
+        if (DOM.categoryBudgetsInputsContainer) {
+          DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
+            const cat = inp.name;
+            const val = Number(inp.value) || 0;
+            newBudgets[cat] = Math.max(0, val);
+          });
+        }
+        appState.categoryBudgets = newBudgets;
+        saveState();
+        if (DOM.categoryBudgetsModal) DOM.categoryBudgetsModal.close();
+        renderApp();
+      });
+    }
+
+    if (DOM.openCategoryBudgetsModalBtn) {
+      DOM.openCategoryBudgetsModalBtn.addEventListener('click', () => {
+        openCategoryBudgetsModal();
+      });
+    }
+
+    if (DOM.heroCategoryBudgetsBtn) {
+      DOM.heroCategoryBudgetsBtn.addEventListener('click', () => {
+        openCategoryBudgetsModal();
+      });
+    }
+  }
+
+  function updateCategoryBudgetsModalTotal() {
+    if (!DOM.categoryBudgetsInputsContainer || !DOM.categoryBudgetsTotalDisplay) return;
+    let sum = 0;
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
+      sum += Number(inp.value) || 0;
+    });
+    DOM.categoryBudgetsTotalDisplay.textContent = `${formatEUR(sum)} / month`;
+  }
+
+  function openCategoryBudgetsModal(focusCatKey = null) {
+    if (!DOM.categoryBudgetsInputsContainer || !DOM.categoryBudgetsModal) return;
+
+    const catBudgets = appState.categoryBudgets || DEFAULT_CATEGORY_BUDGETS;
+    const expenseCategories = Object.keys(CATEGORY_META).filter(cat =>
+      !['salary', 'freelance', 'tutoring', 'gift', 'other_income'].includes(cat)
+    );
+
+    DOM.categoryBudgetsInputsContainer.innerHTML = expenseCategories.map(catKey => {
+      const meta = CATEGORY_META[catKey] || CATEGORY_META.other_expense;
+      const currentVal = catBudgets[catKey] !== undefined ? catBudgets[catKey] : (DEFAULT_CATEGORY_BUDGETS[catKey] || 0);
+
+      return `
+        <div class="category-budget-input-item">
+          <label class="category-budget-input-label" for="cat_budget_${catKey}">
+            <span>${meta.icon}</span>
+            <span>${meta.name}</span>
+          </label>
+          <div class="input-with-addon">
+            <input type="number" id="cat_budget_${catKey}" name="${catKey}" min="0" step="10"
+              class="form-control category-budget-input" value="${currentVal}">
+            <span class="input-addon">€/mo</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    updateCategoryBudgetsModalTotal();
+
+    // Dynamically calculate and update total pool as inputs change
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
+      inp.addEventListener('input', updateCategoryBudgetsModalTotal);
+    });
+
+    try {
+      DOM.categoryBudgetsModal.showModal();
+    } catch (e) {
+      DOM.categoryBudgetsModal.setAttribute('open', '');
+    }
+
+    if (focusCatKey) {
+      const targetInput = document.getElementById(`cat_budget_${focusCatKey}`);
+      if (targetInput) {
+        setTimeout(() => {
+          targetInput.focus();
+          targetInput.select();
+        }, 50);
+      }
+    }
   }
 
   function updateTxModalCategories(type) {
@@ -1668,12 +1799,8 @@
       DOM.txCategory.appendChild(opt);
     });
 
-    if (type === 'expense') {
-      if (DOM.budgetLimitGroup) DOM.budgetLimitGroup.style.display = 'flex';
-      if (DOM.txAmountLabel) DOM.txAmountLabel.textContent = 'Planned Expense Amount (€):';
-    } else {
-      if (DOM.budgetLimitGroup) DOM.budgetLimitGroup.style.display = 'none';
-      if (DOM.txAmountLabel) DOM.txAmountLabel.textContent = 'Planned Income Amount (€):';
+    if (DOM.txAmountLabel) {
+      DOM.txAmountLabel.textContent = type === 'expense' ? 'Planned Expense Amount (€):' : 'Planned Income Amount (€):';
     }
   }
 
@@ -1687,7 +1814,6 @@
       DOM.txMonth.value = existingItem.month;
       DOM.txTitle.value = existingItem.title;
       DOM.txAmount.value = existingItem.amount;
-      DOM.txBudgetLimit.value = existingItem.budgetLimit || '';
 
       const radio = document.querySelector(`input[name="txType"][value="${existingItem.type}"]`);
       if (radio) radio.checked = true;
@@ -1714,7 +1840,6 @@
       DOM.txMonth.value = targetMonth;
       DOM.txTitle.value = '';
       DOM.txAmount.value = '';
-      DOM.txBudgetLimit.value = '';
 
       if (DOM.editScopeGroup) DOM.editScopeGroup.style.display = 'none';
       if (DOM.frequencyGroup) DOM.frequencyGroup.style.display = 'flex';
@@ -1737,7 +1862,6 @@
     const title = DOM.txTitle.value.trim();
     const category = DOM.txCategory.value;
     const amount = Number(DOM.txAmount.value) || 0;
-    const budgetLimit = type === 'expense' && DOM.txBudgetLimit.value ? Number(DOM.txBudgetLimit.value) : undefined;
 
     let updateAllMonths = false;
     let existingItem = null;
@@ -1769,7 +1893,6 @@
           appState.items[existingIdx].title = title;
           appState.items[existingIdx].category = category;
           appState.items[existingIdx].amount = amount;
-          appState.items[existingIdx].budgetLimit = budgetLimit;
           appState.items[existingIdx].isRecurring = true;
           appState.items[existingIdx].recurringKey = recKey;
         } else {
@@ -1780,7 +1903,6 @@
             title,
             category,
             amount,
-            budgetLimit,
             isRecurring: true,
             recurringKey: recKey
           });
@@ -1798,7 +1920,6 @@
             title,
             category,
             amount,
-            budgetLimit,
             isRecurring: false
           };
         }
@@ -1810,7 +1931,6 @@
           title,
           category,
           amount,
-          budgetLimit,
           isRecurring: false
         });
       }
@@ -2014,6 +2134,9 @@
           DOM.syncModal.setAttribute('open', '');
         }
       }
+    },
+    openCategoryBudgetsModal: function (focusCatKey) {
+      openCategoryBudgetsModal(focusCatKey);
     },
     syncPull: function (feedback) {
       return syncPull(feedback);
