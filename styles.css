@@ -443,6 +443,29 @@ strong { font-weight: 600; }
 .month-strip-cumul { font-size: 0.7rem; color: var(--text-muted); }
 .month-strip-cumul strong { color: var(--text-secondary); font-weight: 400; }
 
+.month-mode-tag {
+  font-size: 0.6rem;
+  padding: 0.05rem 0.28rem;
+  border-radius: 3px;
+  line-height: 1.1;
+  font-weight: 500;
+  display: inline-block;
+  margin-top: 0.15rem;
+  width: fit-content;
+}
+.tag-live {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--cli-green);
+}
+.tag-past {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-muted);
+}
+.tag-forecast {
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--cli-blue);
+}
+
 /* ==========================================================================
    Metrics
    ========================================================================== */
@@ -627,6 +650,8 @@ strong { font-weight: 600; }
 .chip-safe { color: var(--cli-green); }
 .chip-danger { color: var(--cli-red); }
 .chip-warn { color: var(--cli-amber); }
+.chip-live { color: var(--cli-green); }
+.chip-forecast { color: var(--cli-blue); }
 
 .table-row-actions { display: inline-flex; gap: 0.15rem; }
 

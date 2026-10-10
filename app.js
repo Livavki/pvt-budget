@@ -670,12 +670,21 @@
   }
 
   // --------------------------------------------------------------------------
-  // 9-Month Financial Calculations Engine
+  // 9-Month Financial Calculations Engine (Hybrid Actuals vs. Budget Forecast)
   // --------------------------------------------------------------------------
+  function getEffectiveCurrentMonth() {
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    if (currentYm < MONTH_KEYS[0]) return MONTH_KEYS[0];
+    if (currentYm > MONTH_KEYS[MONTH_KEYS.length - 1]) return MONTH_KEYS[MONTH_KEYS.length - 1];
+    return currentYm;
+  }
+
   function calculate9MonthSchedule() {
     const goal = Number(appState.settings.savingsGoal) || 6500;
     const initialSaved = Number(appState.settings.initialSaved) || 2800;
     const activeMonth = appState.settings.activeMonth || '2026-10';
+    const effectiveCurrentMonth = getEffectiveCurrentMonth();
 
     const remainingToSave = Math.max(0, goal - initialSaved);
     const requiredMonthlyRate = remainingToSave / MONTH_KEYS.length; // 9 months
@@ -686,23 +695,17 @@
     let categoryOverrunsActiveMonth = [];
 
     MONTH_KEYS.forEach((mKey, idx) => {
+      const isPast = mKey < effectiveCurrentMonth;
+      const isCurrent = mKey === effectiveCurrentMonth;
+      const isFuture = mKey > effectiveCurrentMonth;
+      const temporalState = isPast ? 'past' : (isCurrent ? 'current' : 'future');
+
       const monthItems = appState.items.filter(i => i.month === mKey);
       const incomes = monthItems.filter(i => i.type === 'income');
       const expenses = monthItems.filter(i => i.type === 'expense');
 
       const incomeTotal = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-      const expenseTotal = expenses.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-
-      const netSavings = incomeTotal - expenseTotal;
-      runningBalance += netSavings;
-
-      // Ideal linear milestone trajectory for this month (idx + 1)
-      const idealTarget = initialSaved + (requiredMonthlyRate * (idx + 1));
-      const paceGap = runningBalance - idealTarget; // positive = ahead, negative = deficit
-
-      if (netSavings < 0) {
-        negativeCashflowMonths.push({ month: mKey, name: MONTH_NAMES[mKey].full, deficit: Math.abs(netSavings) });
-      }
+      const actualExpenseTotal = expenses.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
       // Category-level monthly budgets & spending for this month
       const categoryTotals = {};
@@ -735,9 +738,45 @@
         categoryTotals[cat].spent += Number(item.amount) || 0;
       });
 
+      // Hybrid calculation:
+      // - Excluded / milestone categories (flights, insurance, etc.): count actual scheduled spend across all months.
+      // - Budgeted categories:
+      //   * Past and Current months: count ACTUAL amount spent.
+      //   * Future months: count PLANNED category budget (or higher if user scheduled specific expenses exceeding budget).
+      let effectiveExpenseTotal = 0;
+      Object.keys(categoryTotals).forEach(cat => {
+        const info = categoryTotals[cat];
+        if (info.isExcluded) {
+          effectiveExpenseTotal += info.spent;
+        } else {
+          if (isFuture) {
+            effectiveExpenseTotal += Math.max(info.budget, info.spent);
+          } else {
+            effectiveExpenseTotal += info.spent;
+          }
+        }
+      });
+
       const expenseBudgetTotal = Object.values(categoryTotals)
         .filter(c => !c.isExcluded)
         .reduce((sum, c) => sum + (c.budget || 0), 0);
+
+      const expenseTotal = effectiveExpenseTotal;
+      const netSavings = incomeTotal - expenseTotal;
+      runningBalance += netSavings;
+
+      // Ideal linear milestone trajectory for this month (idx + 1)
+      const idealTarget = initialSaved + (requiredMonthlyRate * (idx + 1));
+      const paceGap = runningBalance - idealTarget; // positive = ahead, negative = deficit
+
+      if (netSavings < 0) {
+        negativeCashflowMonths.push({
+          month: mKey,
+          name: MONTH_NAMES[mKey].full,
+          deficit: Math.abs(netSavings),
+          isFuture
+        });
+      }
 
       if (mKey === activeMonth) {
         Object.keys(categoryTotals).forEach(cat => {
@@ -757,7 +796,13 @@
       monthStats.push({
         key: mKey,
         name: MONTH_NAMES[mKey],
+        temporalState,
+        isPast,
+        isCurrent,
+        isFuture,
         incomeTotal,
+        actualExpenseTotal,
+        effectiveExpenseTotal,
         expenseTotal,
         expenseBudgetTotal,
         netSavings,
@@ -922,12 +967,17 @@
       const isDep = stat.name.isDeparture;
       const netSign = stat.netSavings >= 0 ? '+' : '';
       const dotClass = stat.netSavings < 0 ? 'dot-red' : (stat.isOnTrack ? 'dot-green' : 'dot-yellow');
+      const modeTag = stat.isCurrent
+        ? '<span class="month-mode-tag tag-live">Live</span>'
+        : (stat.isPast
+          ? '<span class="month-mode-tag tag-past">Actual</span>'
+          : '<span class="month-mode-tag tag-forecast">Forecast</span>');
 
       return `
         <button type="button" class="month-strip-btn ${isActive ? 'active' : ''} ${isDep ? 'is-departure' : ''}"
           role="tab" aria-selected="${isActive}"
           onclick="window.SakuraApp.selectMonth('${stat.key}')"
-          title="Click to view and edit budget for ${stat.name.full}">
+          title="Click to view and edit budget for ${stat.name.full} (${stat.temporalState.toUpperCase()})">
           <div class="month-strip-header">
             <span class="month-strip-name">${stat.name.short}</span>
             <span class="month-status-dot ${dotClass}" title="${stat.netSavings < 0 ? 'Negative cashflow' : (stat.isOnTrack ? 'On track' : 'Pace gap')}"></span>
@@ -938,6 +988,7 @@
           <div class="month-strip-cumul">
             Total: <strong>${formatEURShort(stat.runningBalance)}</strong>
           </div>
+          <div>${modeTag}</div>
         </button>
       `;
     }).join('');
@@ -954,9 +1005,21 @@
     DOM.metricSelectedIncome.textContent = formatEUR(act.incomeTotal);
     DOM.metricIncomeCount.textContent = `${act.incomesCount} income items scheduled`;
 
-    DOM.lblSelectedMonthExpense.textContent = `${monthName} Planned Expenses`;
-    DOM.metricSelectedExpense.textContent = formatEUR(act.expenseTotal);
-    DOM.metricBudgetVsSpend.textContent = `Budget limit: ${formatEUR(act.expenseBudgetTotal)}`;
+    if (act.isFuture) {
+      DOM.lblSelectedMonthExpense.textContent = `${monthName} Projected Expenses`;
+      DOM.metricSelectedExpense.textContent = formatEUR(act.expenseTotal);
+      const milestonePart = act.expenseTotal - act.expenseBudgetTotal;
+      DOM.metricBudgetVsSpend.textContent = milestonePart > 0
+        ? `Budget pool: ${formatEUR(act.expenseBudgetTotal)} + ${formatEUR(milestonePart)} milestone`
+        : `Budget pool: ${formatEUR(act.expenseBudgetTotal)}`;
+    } else {
+      DOM.lblSelectedMonthExpense.textContent = `${monthName} Actual Expenses`;
+      DOM.metricSelectedExpense.textContent = formatEUR(act.actualExpenseTotal);
+      const remaining = act.expenseBudgetTotal - act.actualExpenseTotal;
+      DOM.metricBudgetVsSpend.textContent = remaining >= 0
+        ? `Budget ceiling: ${formatEUR(act.expenseBudgetTotal)} (${formatEUR(remaining)} remaining)`
+        : `Budget ceiling: ${formatEUR(act.expenseBudgetTotal)} (+${formatEUR(Math.abs(remaining))} over)`;
+    }
 
     DOM.lblSelectedMonthNet.textContent = `${monthName} Net Savings`;
     DOM.metricSelectedNet.textContent = `${act.netSavings >= 0 ? '+' : ''}${formatEUR(act.netSavings)}`;
@@ -1090,8 +1153,11 @@
           ? `<span style="color:var(--brand-emerald)">+${formatEUR(gap)} ahead of schedule</span>`
           : `<span style="color:var(--brand-crimson)">${formatEUR(Math.abs(gap))} behind pace</span>`;
 
+        const statPoint = dataPoints.find(p => p.name.full === month);
+        const modeLabel = statPoint?.isCurrent ? '📍 Live Actuals' : (statPoint?.isPast ? '📜 Past Actuals' : '🔮 Budget Forecast');
+
         tooltipElem.innerHTML = `
-          <strong>${month}</strong><br>
+          <strong>${month}</strong> <small style="color:var(--text-muted)">(${modeLabel})</small><br>
           Monthly Net: <strong>${net >= 0 ? '+' : ''}${formatEUR(net)}</strong><br>
           Cumulative Saved: <strong>${formatEUR(cumul)}</strong><br>
           Target: ${formatEUR(target)} (${gapHtml})
@@ -1386,10 +1452,16 @@
       const netSign = stat.netSavings >= 0 ? '+' : '';
       const rowClass = isActive ? 'active-month-row' : (isDep ? 'departure-month-row' : '');
 
+      const modeChip = stat.isCurrent
+        ? `<span class="status-chip chip-live" style="font-size:0.65rem">📍 Live</span>`
+        : (stat.isPast
+          ? `<span class="status-chip chip-neutral" style="font-size:0.65rem">📜 Actuals</span>`
+          : `<span class="status-chip chip-forecast" style="font-size:0.65rem">🔮 Budget</span>`);
+
       return `
         <tr class="${rowClass}">
           <td>
-            <strong>${stat.name.full}</strong> ${isDep ? '🎯' : ''} ${isActive ? '<span class="status-chip chip-safe" style="font-size:0.65rem">Active</span>' : ''}
+            <strong>${stat.name.full}</strong> ${isDep ? '🎯' : ''} ${isActive ? '<span class="status-chip chip-safe" style="font-size:0.65rem">Active</span>' : ''} ${modeChip}
           </td>
           <td class="text-emerald">${formatEUR(stat.incomeTotal)}</td>
           <td class="text-rose">${formatEUR(stat.expenseTotal)}</td>
