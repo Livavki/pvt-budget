@@ -35,26 +35,26 @@
 
 
   const CATEGORY_META = {
-    // Expense categories — each category has a distinctive, unique hue for instant chart legibility
-    housing: { name: 'Housing & Rent', icon: '🏠', color: '#82aaff' },        // Periwinkle Blue
-    food: { name: 'Food & Groceries', icon: '🍙', color: '#f07178' },          // Coral Red
-    shopping: { name: 'Shopping', icon: '🛍️', color: '#e06cbb' },              // Vibrant Orchid / Magenta
-    transport: { name: 'Transport & Commute', icon: '🚃', color: '#89ddff' },   // Sky Cyan
-    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#ff9e64' },   // Warm Tangerine Orange
-    health: { name: 'Health & Medical', icon: '💊', color: '#c3e88d' },        // Mint / Lime Green
-    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#ffcb6b' },       // Golden Amber Yellow
-    flight: { name: 'Flight to Japan', icon: '✈️', color: '#7c4dff' },         // Electric Deep Indigo
-    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#4fd6be' },  // Seafoam Teal
-    visa: { name: 'Visa & Admin', icon: '🛂', color: '#ff5370' },              // Crimson Rose
-    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#c792ea' },     // Lavender Purple
-    other_expense: { name: 'Other Expenses', icon: '📦', color: '#959dc0' },    // Muted Slate Blue
+    // Expense categories — tuned to Rosé Pine palette with distinctive hues
+    housing: { name: 'Housing & Rent', icon: '🏠', color: '#9ccfd8' },        // Foam
+    food: { name: 'Food & Groceries', icon: '🍙', color: '#eb6f92' },          // Love
+    shopping: { name: 'Shopping', icon: '🛍️', color: '#ea9a97' },              // Rose
+    transport: { name: 'Transport & Commute', icon: '🚃', color: '#31748f' },   // Pine
+    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#f6c177' },   // Gold
+    health: { name: 'Health & Medical', icon: '💊', color: '#a6da95' },        // Mint Sage
+    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#ebbcba' },       // Warm Peach
+    flight: { name: 'Flight to Japan', icon: '✈️', color: '#c4a7e7' },         // Iris
+    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#56949f' },  // Seafoam Teal
+    visa: { name: 'Visa & Admin', icon: '🛂', color: '#b4637a' },              // Deep Love
+    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#908caa' },     // Subtle Lilac
+    other_expense: { name: 'Other Expenses', icon: '📦', color: '#6e6a86' },    // Muted Slate
 
     // Income categories
-    salary: { name: 'Main Job / Salary', icon: '💼', color: '#c3e88d' },
-    freelance: { name: 'Freelance & Tech', icon: '💻', color: '#89ddff' },
-    tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#ffcb6b' },
-    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#e06cbb' },
-    other_income: { name: 'Other Income', icon: '💵', color: '#82aaff' }
+    salary: { name: 'Main Job / Salary', icon: '💼', color: '#a6da95' },
+    freelance: { name: 'Freelance & Tech', icon: '💻', color: '#9ccfd8' },
+    tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#f6c177' },
+    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#ea9a97' },
+    other_income: { name: 'Other Income', icon: '💵', color: '#c4a7e7' }
   };
 
   const DEFAULT_EXCLUDED_CATEGORIES = ['flight', 'insurance', 'visa', 'gear', 'other_expense'];
@@ -1085,8 +1085,8 @@
       <svg viewBox="0 0 ${width} ${height}" class="chart-svg" preserveAspectRatio="none">
         <defs>
           <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stop-opacity="0.32"/>
-            <stop offset="100%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stop-opacity="0.0"/>
+            <stop offset="0%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#a6da95' : '#eb6f92'}" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#a6da95' : '#eb6f92'}" stop-opacity="0.0"/>
           </linearGradient>
         </defs>
 
@@ -1105,7 +1105,7 @@
         <path d="${targetPathD}" fill="none" stroke="var(--brand-gold)" stroke-width="2" stroke-dasharray="5 4"/>
 
         <!-- Scheduled Path Line (Solid Emerald or Rose) -->
-        <path d="${actualPathD}" fill="none" stroke="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stroke-width="3"/>
+        <path d="${actualPathD}" fill="none" stroke="${calc.finalJuneBalance >= calc.goal ? '#a6da95' : '#eb6f92'}" stroke-width="3"/>
     `;
 
     dataPoints.forEach((p, idx) => {
@@ -1121,7 +1121,7 @@
 
         <!-- Interactive Dot -->
         <circle cx="${x}" cy="${y}" r="${isSelected ? 6 : 4.5}"
-          fill="${p.runningBalance >= p.idealTarget ? '#c3e88d' : '#f07178'}"
+          fill="${p.runningBalance >= p.idealTarget ? '#a6da95' : '#eb6f92'}"
           stroke="#ffffff" stroke-width="${isSelected ? 2.5 : 1.5}"
           class="chart-dot"
           data-month="${p.name.full}"
