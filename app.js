@@ -57,6 +57,8 @@
     other_income: { name: 'Other Income', icon: '💵', color: '#84cc16' }
   };
 
+  const DEFAULT_EXCLUDED_CATEGORIES = ['flight', 'insurance', 'visa', 'gear', 'other_expense'];
+
   const DEFAULT_CATEGORY_BUDGETS = {
     housing: 850.00,
     food: 420.00,
@@ -65,11 +67,11 @@
     leisure: 250.00,
     health: 50.00,
     shopping: 100.00,
-    flight: 850.00,
-    insurance: 450.00,
-    visa: 50.00,
-    gear: 200.00,
-    other_expense: 50.00
+    flight: 0,
+    insurance: 0,
+    visa: 0,
+    gear: 0,
+    other_expense: 0
   };
 
   // Helper to generate pre-populated items across the 9 months
@@ -111,7 +113,8 @@
       savingsGoal: 6500.00, // €6,500
       initialSaved: 2800.00, // Initial saved capital on October 1, 2026
       activeMonth: '2026-10', // Default active month: October 2026
-      theme: 'dark'
+      theme: 'dark',
+      excludedCategories: [...DEFAULT_EXCLUDED_CATEGORIES]
     },
     categoryBudgets: { ...DEFAULT_CATEGORY_BUDGETS },
     items: createDefaultSchedule()
@@ -237,6 +240,7 @@
     txMonth: document.getElementById('txMonth'),
     txTitle: document.getElementById('txTitle'),
     txCategory: document.getElementById('txCategory'),
+    txCategoryHint: document.getElementById('txCategoryHint'),
     txAmount: document.getElementById('txAmount'),
     txAmountLabel: document.getElementById('txAmountLabel'),
 
@@ -301,8 +305,12 @@
         const rawItems = Array.isArray(parsed.items) && parsed.items.length > 0
           ? parsed.items.filter(i => i.id !== 'exp_visa_2027-05' && i.category !== 'visa')
           : createDefaultSchedule();
+        const loadedSettings = { ...DEFAULT_STATE.settings, ...parsed.settings };
+        if (!Array.isArray(loadedSettings.excludedCategories)) {
+          loadedSettings.excludedCategories = [...DEFAULT_EXCLUDED_CATEGORIES];
+        }
         return {
-          settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
+          settings: loadedSettings,
           categoryBudgets: { ...DEFAULT_CATEGORY_BUDGETS, ...(parsed.categoryBudgets || {}) },
           items: normalizeItems(rawItems)
         };
@@ -699,27 +707,42 @@
       // Category-level monthly budgets & spending for this month
       const categoryTotals = {};
       const catBudgets = appState.categoryBudgets || DEFAULT_CATEGORY_BUDGETS;
+      const excludedCats = (appState.settings && Array.isArray(appState.settings.excludedCategories))
+        ? appState.settings.excludedCategories
+        : DEFAULT_EXCLUDED_CATEGORIES;
 
       Object.keys(CATEGORY_META).forEach(cat => {
         if (!['salary', 'freelance', 'tutoring', 'gift', 'other_income'].includes(cat)) {
-          categoryTotals[cat] = { spent: 0, budget: Number(catBudgets[cat]) || 0 };
+          const isExcluded = excludedCats.includes(cat);
+          categoryTotals[cat] = {
+            spent: 0,
+            budget: isExcluded ? 0 : (Number(catBudgets[cat]) || 0),
+            isExcluded
+          };
         }
       });
 
       expenses.forEach(item => {
         const cat = item.category || 'other_expense';
         if (!categoryTotals[cat]) {
-          categoryTotals[cat] = { spent: 0, budget: Number(catBudgets[cat]) || 0 };
+          const isExcluded = excludedCats.includes(cat);
+          categoryTotals[cat] = {
+            spent: 0,
+            budget: isExcluded ? 0 : (Number(catBudgets[cat]) || 0),
+            isExcluded
+          };
         }
         categoryTotals[cat].spent += Number(item.amount) || 0;
       });
 
-      const expenseBudgetTotal = Object.values(categoryTotals).reduce((sum, c) => sum + (c.budget || 0), 0);
+      const expenseBudgetTotal = Object.values(categoryTotals)
+        .filter(c => !c.isExcluded)
+        .reduce((sum, c) => sum + (c.budget || 0), 0);
 
       if (mKey === activeMonth) {
         Object.keys(categoryTotals).forEach(cat => {
           const info = categoryTotals[cat];
-          if (info.budget > 0 && info.spent > info.budget) {
+          if (!info.isExcluded && info.budget > 0 && info.spent > info.budget) {
             categoryOverrunsActiveMonth.push({
               category: cat,
               name: CATEGORY_META[cat]?.name || cat,
@@ -1389,21 +1412,25 @@
 
     // 4. Category Budgets (For Active Month)
     const activeStats = calc.activeData;
-    const catKeys = Object.keys(activeStats.categoryTotals);
+    const allCatKeys = Object.keys(activeStats.categoryTotals);
+    const budgetedKeys = allCatKeys.filter(k => !activeStats.categoryTotals[k].isExcluded);
+    const excludedKeys = allCatKeys.filter(k => activeStats.categoryTotals[k].isExcluded);
 
-    if (catKeys.length === 0) {
+    if (allCatKeys.length === 0) {
       DOM.categoryBudgetsGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:2rem;">No category expenses recorded for ${activeStats.name.full}.</div>`;
     } else {
-      DOM.categoryBudgetsGrid.innerHTML = catKeys.map(key => {
+      const renderCard = (key, isExcluded) => {
         const meta = CATEGORY_META[key] || CATEGORY_META.other_expense;
         const data = activeStats.categoryTotals[key];
-        const isExceeded = data.budget > 0 && data.spent > data.budget;
-        const fillPercent = data.budget > 0 ? Math.min(100, (data.spent / data.budget) * 100) : (data.spent > 0 ? 100 : 0);
+        const isExceeded = !isExcluded && data.budget > 0 && data.spent > data.budget;
+        const fillPercent = !isExcluded && data.budget > 0 ? Math.min(100, (data.spent / data.budget) * 100) : (data.spent > 0 ? 100 : 0);
         const excess = data.spent - data.budget;
         const remaining = data.budget - data.spent;
 
         let statusChipHtml = '';
-        if (isExceeded) {
+        if (isExcluded) {
+          statusChipHtml = `<span class="status-chip chip-neutral" style="color:var(--text-muted)">Milestone (No ceiling)</span>`;
+        } else if (isExceeded) {
           statusChipHtml = `<span class="status-chip chip-danger">⚠️ +${formatEUR(excess)} OVER</span>`;
         } else if (data.budget > 0) {
           statusChipHtml = `<span class="status-chip chip-safe">${fillPercent.toFixed(0)}% used</span>`;
@@ -1414,7 +1441,9 @@
         }
 
         return `
-          <div class="category-budget-card ${isExceeded ? 'budget-exceeded' : ''}" style="cursor: pointer;" onclick="window.SakuraApp.openCategoryBudgetsModal('${key}')" title="Click to adjust monthly budget for ${meta.name}">
+          <div class="category-budget-card ${isExceeded ? 'budget-exceeded' : ''} ${isExcluded ? 'is-excluded' : ''}"
+            style="cursor: pointer;" onclick="window.SakuraApp.openCategoryBudgetsModal('${key}')"
+            title="Click to configure budget for ${meta.name}">
             <div class="cat-card-header">
               <div class="cat-card-title">
                 <span>${meta.icon}</span>
@@ -1426,20 +1455,33 @@
             </div>
 
             <div class="cat-progress-bar-bg">
-              <div class="cat-progress-bar-fill" style="width: ${fillPercent}%; background: ${isExceeded ? 'var(--brand-crimson)' : meta.color};"></div>
+              <div class="cat-progress-bar-fill" style="width: ${fillPercent}%; background: ${isExcluded ? 'var(--text-muted)' : (isExceeded ? 'var(--brand-crimson)' : meta.color)};"></div>
             </div>
 
             <div class="cat-card-numbers">
               <span>Spent: <strong>${formatEUR(data.spent)}</strong></span>
-              <span>Budget: <strong>${data.budget > 0 ? formatEUR(data.budget) + '/mo' : 'None'}</strong></span>
+              <span>Budget: <strong>${!isExcluded && data.budget > 0 ? formatEUR(data.budget) + '/mo' : (isExcluded ? 'Excluded' : 'None')}</strong></span>
             </div>
             <div class="cat-card-numbers" style="margin-top: -0.2rem; font-size: 0.69rem;">
-              <span>${isExceeded ? `<span style="color:var(--cli-red)">Over by ${formatEUR(excess)}</span>` : (data.budget > 0 ? `<span style="color:var(--cli-green)">Remaining: ${formatEUR(remaining)}</span>` : '<span style="color:var(--text-muted)">No monthly limit</span>')}</span>
-              <span style="color: var(--cli-blue); text-decoration: underline;">✏️ Edit Budget</span>
+              <span>${isExcluded ? '<span style="color:var(--text-muted)">Milestone expense</span>' : (isExceeded ? `<span style="color:var(--cli-red)">Over by ${formatEUR(excess)}</span>` : (data.budget > 0 ? `<span style="color:var(--cli-green)">Remaining: ${formatEUR(remaining)}</span>` : '<span style="color:var(--text-muted)">No monthly limit</span>'))}</span>
+              <span style="color: var(--cli-blue); text-decoration: underline;">⚙️ Configure</span>
             </div>
           </div>
         `;
-      }).join('');
+      };
+
+      let gridHtml = budgetedKeys.map(k => renderCard(k, false)).join('');
+
+      if (excludedKeys.length > 0) {
+        gridHtml += `
+          <div class="category-budgets-section-divider">
+            <span>✈️ Milestone &amp; Excluded Categories (No Monthly Ceiling)</span>
+          </div>
+        `;
+        gridHtml += excludedKeys.map(k => renderCard(k, true)).join('');
+      }
+
+      DOM.categoryBudgetsGrid.innerHTML = gridHtml;
     }
   }
 
@@ -1698,14 +1740,22 @@
       DOM.categoryBudgetsForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const newBudgets = {};
+        const newExcluded = [];
         if (DOM.categoryBudgetsInputsContainer) {
-          DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
+          DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input-item').forEach(item => {
+            const cb = item.querySelector('.cat-exclude-checkbox');
+            const inp = item.querySelector('.category-budget-input');
             const cat = inp.name;
             const val = Number(inp.value) || 0;
             newBudgets[cat] = Math.max(0, val);
+            if (cb && !cb.checked) {
+              newExcluded.push(cat);
+            }
           });
         }
         appState.categoryBudgets = newBudgets;
+        if (!appState.settings) appState.settings = {};
+        appState.settings.excludedCategories = newExcluded;
         saveState();
         if (DOM.categoryBudgetsModal) DOM.categoryBudgetsModal.close();
         renderApp();
@@ -1723,13 +1773,23 @@
         openCategoryBudgetsModal();
       });
     }
+
+    if (DOM.txCategory) {
+      DOM.txCategory.addEventListener('change', () => {
+        updateTxCategoryHint();
+      });
+    }
   }
 
   function updateCategoryBudgetsModalTotal() {
     if (!DOM.categoryBudgetsInputsContainer || !DOM.categoryBudgetsTotalDisplay) return;
     let sum = 0;
-    DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
-      sum += Number(inp.value) || 0;
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input-item').forEach(item => {
+      const cb = item.querySelector('.cat-exclude-checkbox');
+      const inp = item.querySelector('.category-budget-input');
+      if (cb && cb.checked && inp) {
+        sum += Number(inp.value) || 0;
+      }
     });
     DOM.categoryBudgetsTotalDisplay.textContent = `${formatEUR(sum)} / month`;
   }
@@ -1738,24 +1798,40 @@
     if (!DOM.categoryBudgetsInputsContainer || !DOM.categoryBudgetsModal) return;
 
     const catBudgets = appState.categoryBudgets || DEFAULT_CATEGORY_BUDGETS;
+    const excludedCats = (appState.settings && Array.isArray(appState.settings.excludedCategories))
+      ? appState.settings.excludedCategories
+      : DEFAULT_EXCLUDED_CATEGORIES;
+
     const expenseCategories = Object.keys(CATEGORY_META).filter(cat =>
       !['salary', 'freelance', 'tutoring', 'gift', 'other_income'].includes(cat)
     );
 
     DOM.categoryBudgetsInputsContainer.innerHTML = expenseCategories.map(catKey => {
       const meta = CATEGORY_META[catKey] || CATEGORY_META.other_expense;
+      const isExcluded = excludedCats.includes(catKey);
       const currentVal = catBudgets[catKey] !== undefined ? catBudgets[catKey] : (DEFAULT_CATEGORY_BUDGETS[catKey] || 0);
 
       return `
-        <div class="category-budget-input-item">
-          <label class="category-budget-input-label" for="cat_budget_${catKey}">
-            <span>${meta.icon}</span>
-            <span>${meta.name}</span>
-          </label>
-          <div class="input-with-addon">
+        <div class="category-budget-input-item ${isExcluded ? 'is-excluded' : ''}" id="cat_budget_item_${catKey}">
+          <div class="category-budget-input-header">
+            <label class="category-budget-input-label" for="cat_budget_${catKey}">
+              <span>${meta.icon}</span>
+              <span>${meta.name}</span>
+            </label>
+            <label class="category-exclude-toggle" title="Toggle monthly budget ceiling for ${meta.name}">
+              <input type="checkbox" class="cat-exclude-checkbox" data-cat="${catKey}" ${!isExcluded ? 'checked' : ''}>
+              <span class="cat-toggle-text ${!isExcluded ? 'is-active' : 'is-excluded'}">${!isExcluded ? 'Budgeted' : 'Excluded'}</span>
+            </label>
+          </div>
+          <div class="input-with-addon" style="${isExcluded ? 'opacity: 0.45; pointer-events: none;' : ''}">
             <input type="number" id="cat_budget_${catKey}" name="${catKey}" min="0" step="10"
-              class="form-control category-budget-input" value="${currentVal}">
+              class="form-control category-budget-input" value="${currentVal}" ${isExcluded ? 'disabled' : ''}>
             <span class="input-addon">€/mo</span>
+          </div>
+          <div class="category-budget-subtext">
+            ${isExcluded
+              ? '<span style="color:var(--text-muted)">Excluded from monthly ceiling &amp; warnings</span>'
+              : '<span style="color:var(--cli-green)">Active monthly pool</span>'}
           </div>
         </div>
       `;
@@ -1763,7 +1839,36 @@
 
     updateCategoryBudgetsModalTotal();
 
-    // Dynamically calculate and update total pool as inputs change
+    // Dynamically calculate and update total pool as inputs and toggles change
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.cat-exclude-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const item = cb.closest('.category-budget-input-item');
+        const inputWrap = item.querySelector('.input-with-addon');
+        const input = item.querySelector('.category-budget-input');
+        const badge = item.querySelector('.cat-toggle-text');
+        const subtext = item.querySelector('.category-budget-subtext');
+
+        if (cb.checked) {
+          item.classList.remove('is-excluded');
+          inputWrap.style.opacity = '1';
+          inputWrap.style.pointerEvents = 'auto';
+          input.disabled = false;
+          badge.textContent = 'Budgeted';
+          badge.className = 'cat-toggle-text is-active';
+          subtext.innerHTML = '<span style="color:var(--cli-green)">Active monthly pool</span>';
+        } else {
+          item.classList.add('is-excluded');
+          inputWrap.style.opacity = '0.45';
+          inputWrap.style.pointerEvents = 'none';
+          input.disabled = true;
+          badge.textContent = 'Excluded';
+          badge.className = 'cat-toggle-text is-excluded';
+          subtext.innerHTML = '<span style="color:var(--text-muted)">Excluded from monthly ceiling &amp; warnings</span>';
+        }
+        updateCategoryBudgetsModalTotal();
+      });
+    });
+
     DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
       inp.addEventListener('input', updateCategoryBudgetsModalTotal);
     });
@@ -1785,6 +1890,28 @@
     }
   }
 
+  function updateTxCategoryHint() {
+    if (!DOM.txCategoryHint || !DOM.txCategory) return;
+    const selCat = DOM.txCategory.value;
+    const typeRadio = document.querySelector('input[name="txType"]:checked');
+    const type = typeRadio ? typeRadio.value : 'expense';
+
+    if (type !== 'expense') {
+      DOM.txCategoryHint.innerHTML = '';
+      return;
+    }
+
+    const excludedCats = (appState.settings && Array.isArray(appState.settings.excludedCategories))
+      ? appState.settings.excludedCategories
+      : DEFAULT_EXCLUDED_CATEGORIES;
+
+    if (excludedCats.includes(selCat)) {
+      DOM.txCategoryHint.innerHTML = '<span style="color:var(--cli-blue)">ℹ️ Milestone category (excluded from monthly budget ceiling &amp; overrun warnings)</span>';
+    } else {
+      DOM.txCategoryHint.innerHTML = '<span style="color:var(--text-muted)">✓ Active living budget (draws from monthly pool)</span>';
+    }
+  }
+
   function updateTxModalCategories(type) {
     DOM.txCategory.innerHTML = '';
     const relevantKeys = Object.keys(CATEGORY_META).filter(key => {
@@ -1802,6 +1929,8 @@
     if (DOM.txAmountLabel) {
       DOM.txAmountLabel.textContent = type === 'expense' ? 'Planned Expense Amount (€):' : 'Planned Income Amount (€):';
     }
+
+    updateTxCategoryHint();
   }
 
   function openTransactionModal(existingItem = null, defaultMonth = null, forceFixed = false) {
