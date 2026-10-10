@@ -35,26 +35,43 @@
 
 
   const CATEGORY_META = {
-    // Expense categories
-    housing: { name: 'Housing & Rent', icon: '🏠', color: '#6366f1' },
-    food: { name: 'Food & Groceries', icon: '🍙', color: '#ff6b8b' },
-    shopping: { name: 'Shopping', icon: '🛍️', color: '#ec4899' },
-    transport: { name: 'Transport & Commute', icon: '🚃', color: '#00f2fe' },
-    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#38bdf8' },
-    health: { name: 'Health & Medical', icon: '💊', color: '#14b8a6' },
-    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#f59e0b' },
-    flight: { name: 'Flight to Japan', icon: '✈️', color: '#0ea5e9' },
-    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#10b981' },
-    visa: { name: 'Visa & Admin', icon: '🛂', color: '#f43f5e' },
-    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#8b5cf6' },
-    other_expense: { name: 'Other Expenses', icon: '📦', color: '#94a3b8' },
+    // Expense categories — each category has a distinctive, unique hue for instant chart legibility
+    housing: { name: 'Housing & Rent', icon: '🏠', color: '#82aaff' },        // Periwinkle Blue
+    food: { name: 'Food & Groceries', icon: '🍙', color: '#f07178' },          // Coral Red
+    shopping: { name: 'Shopping', icon: '🛍️', color: '#e06cbb' },              // Vibrant Orchid / Magenta
+    transport: { name: 'Transport & Commute', icon: '🚃', color: '#89ddff' },   // Sky Cyan
+    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#ff9e64' },   // Warm Tangerine Orange
+    health: { name: 'Health & Medical', icon: '💊', color: '#c3e88d' },        // Mint / Lime Green
+    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#ffcb6b' },       // Golden Amber Yellow
+    flight: { name: 'Flight to Japan', icon: '✈️', color: '#7c4dff' },         // Electric Deep Indigo
+    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#4fd6be' },  // Seafoam Teal
+    visa: { name: 'Visa & Admin', icon: '🛂', color: '#ff5370' },              // Crimson Rose
+    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#c792ea' },     // Lavender Purple
+    other_expense: { name: 'Other Expenses', icon: '📦', color: '#959dc0' },    // Muted Slate Blue
 
     // Income categories
-    salary: { name: 'Main Job / Salary', icon: '💼', color: '#10b981' },
-    freelance: { name: 'Freelance & Tech', icon: '💻', color: '#06b6d4' },
-    tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#f59e0b' },
-    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#ec4899' },
-    other_income: { name: 'Other Income', icon: '💵', color: '#84cc16' }
+    salary: { name: 'Main Job / Salary', icon: '💼', color: '#c3e88d' },
+    freelance: { name: 'Freelance & Tech', icon: '💻', color: '#89ddff' },
+    tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#ffcb6b' },
+    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#e06cbb' },
+    other_income: { name: 'Other Income', icon: '💵', color: '#82aaff' }
+  };
+
+  const DEFAULT_EXCLUDED_CATEGORIES = ['flight', 'insurance', 'visa', 'gear', 'other_expense'];
+
+  const DEFAULT_CATEGORY_BUDGETS = {
+    housing: 850.00,
+    food: 420.00,
+    transport: 120.00,
+    utilities: 160.00,
+    leisure: 250.00,
+    health: 50.00,
+    shopping: 100.00,
+    flight: 0,
+    insurance: 0,
+    visa: 0,
+    gear: 0,
+    other_expense: 0
   };
 
   // Helper to generate pre-populated items across the 9 months
@@ -68,25 +85,25 @@
       items.push({ id: `inc_tut_${m}`, month: m, type: 'income', category: 'tutoring', title: 'Language Tutoring', amount: 50.00, isRecurring: true, recurringKey: 'rec_tutoring' });
 
       // Regular monthly expenses (Fixed recurring)
-      items.push({ id: `exp_rent_${m}`, month: m, type: 'expense', category: 'housing', title: 'Rent & Charges', amount: 850.00, budgetLimit: 850.00, isRecurring: true, recurringKey: 'rec_rent' });
-      items.push({ id: `exp_food_${m}`, month: m, type: 'expense', category: 'food', title: 'Groceries & Food', amount: 420.00, budgetLimit: 380.00, isRecurring: true, recurringKey: 'rec_food' });
-      items.push({ id: `exp_trans_${m}`, month: m, type: 'expense', category: 'transport', title: 'Transit Pass', amount: 110.00, budgetLimit: 120.00, isRecurring: true, recurringKey: 'rec_transport' });
-      items.push({ id: `exp_util_${m}`, month: m, type: 'expense', category: 'utilities', title: 'Phone, Fiber & Electricity', amount: 160.00, budgetLimit: 150.00, isRecurring: true, recurringKey: 'rec_utilities' });
-      items.push({ id: `exp_leis_${m}`, month: m, type: 'expense', category: 'leisure', title: 'Dining Out, Social & Coffee', amount: 250.00, budgetLimit: 250.00, isRecurring: true, recurringKey: 'rec_leisure' });
+      items.push({ id: `exp_rent_${m}`, month: m, type: 'expense', category: 'housing', title: 'Rent & Charges', amount: 850.00, isRecurring: true, recurringKey: 'rec_rent' });
+      items.push({ id: `exp_food_${m}`, month: m, type: 'expense', category: 'food', title: 'Groceries & Food', amount: 420.00, isRecurring: true, recurringKey: 'rec_food' });
+      items.push({ id: `exp_trans_${m}`, month: m, type: 'expense', category: 'transport', title: 'Transit Pass', amount: 110.00, isRecurring: true, recurringKey: 'rec_transport' });
+      items.push({ id: `exp_util_${m}`, month: m, type: 'expense', category: 'utilities', title: 'Phone, Fiber & Electricity', amount: 160.00, isRecurring: true, recurringKey: 'rec_utilities' });
+      items.push({ id: `exp_leis_${m}`, month: m, type: 'expense', category: 'leisure', title: 'Dining Out, Social & Coffee', amount: 250.00, isRecurring: true, recurringKey: 'rec_leisure' });
     });
 
     // Advance specific expenses (One-offs):
     // December 2026: Extra holiday season expenses
-    items.push({ id: 'exp_xmas_2026-12', month: '2026-12', type: 'expense', category: 'leisure', title: 'Holiday Gatherings & Gifts', amount: 180.00, budgetLimit: 150.00, isRecurring: false });
+    items.push({ id: 'exp_xmas_2026-12', month: '2026-12', type: 'expense', category: 'leisure', title: 'Holiday Gatherings & Gifts', amount: 180.00, isRecurring: false });
 
     // April 2027: Book flight to Tokyo
-    items.push({ id: 'exp_flight_2027-04', month: '2027-04', type: 'expense', category: 'flight', title: 'Round-trip Flight to Tokyo', amount: 850.00, budgetLimit: 850.00, isRecurring: false });
+    items.push({ id: 'exp_flight_2027-04', month: '2027-04', type: 'expense', category: 'flight', title: 'Round-trip Flight to Tokyo', amount: 850.00, isRecurring: false });
 
     // May 2027: WHV Insurance
-    items.push({ id: 'exp_ins_2027-05', month: '2027-05', type: 'expense', category: 'insurance', title: '1-Year WHV Health Insurance (Chapka)', amount: 450.00, budgetLimit: 450.00, isRecurring: false });
+    items.push({ id: 'exp_ins_2027-05', month: '2027-05', type: 'expense', category: 'insurance', title: '1-Year WHV Health Insurance (Chapka)', amount: 450.00, isRecurring: false });
 
     // June 2027: Departure luggage & travel accessories
-    items.push({ id: 'exp_gear_2027-06', month: '2027-06', type: 'expense', category: 'gear', title: 'Suitcase, Backpack & Power Converters', amount: 200.00, budgetLimit: 200.00, isRecurring: false });
+    items.push({ id: 'exp_gear_2027-06', month: '2027-06', type: 'expense', category: 'gear', title: 'Suitcase, Backpack & Power Converters', amount: 200.00, isRecurring: false });
 
     return items;
   }
@@ -96,8 +113,10 @@
       savingsGoal: 6500.00, // €6,500
       initialSaved: 2800.00, // Initial saved capital on October 1, 2026
       activeMonth: '2026-10', // Default active month: October 2026
-      theme: 'dark'
+      theme: 'dark',
+      excludedCategories: [...DEFAULT_EXCLUDED_CATEGORIES]
     },
+    categoryBudgets: { ...DEFAULT_CATEGORY_BUDGETS },
     items: createDefaultSchedule()
   };
 
@@ -135,6 +154,7 @@
     // Quick Actions
     editGoalBtn: document.getElementById('editGoalBtn'),
     quickAddSavedBtn: document.getElementById('quickAddSavedBtn'),
+    heroCategoryBudgetsBtn: document.getElementById('heroCategoryBudgetsBtn'),
     addAdvanceItemBtn: document.getElementById('addAdvanceItemBtn'),
 
     // Dynamic Alerts
@@ -220,10 +240,9 @@
     txMonth: document.getElementById('txMonth'),
     txTitle: document.getElementById('txTitle'),
     txCategory: document.getElementById('txCategory'),
+    txCategoryHint: document.getElementById('txCategoryHint'),
     txAmount: document.getElementById('txAmount'),
     txAmountLabel: document.getElementById('txAmountLabel'),
-    txBudgetLimit: document.getElementById('txBudgetLimit'),
-    budgetLimitGroup: document.getElementById('budgetLimitGroup'),
 
     // Footer actions
     exportDataBtn: document.getElementById('exportDataBtn'),
@@ -243,7 +262,15 @@
     manualPullBtn: document.getElementById('manualPullBtn'),
     manualPushBtn: document.getElementById('manualPushBtn'),
     saveSyncConfigBtn: document.getElementById('saveSyncConfigBtn'),
-    autoCreateGistBtn: document.getElementById('autoCreateGistBtn')
+    autoCreateGistBtn: document.getElementById('autoCreateGistBtn'),
+
+    // Category-Level Monthly Budgets
+    heroCategoryBudgetsBtn: document.getElementById('heroCategoryBudgetsBtn'),
+    openCategoryBudgetsModalBtn: document.getElementById('openCategoryBudgetsModalBtn'),
+    categoryBudgetsModal: document.getElementById('categoryBudgetsModal'),
+    categoryBudgetsForm: document.getElementById('categoryBudgetsForm'),
+    categoryBudgetsInputsContainer: document.getElementById('categoryBudgetsInputsContainer'),
+    categoryBudgetsTotalDisplay: document.getElementById('categoryBudgetsTotalDisplay')
   };
 
   // --------------------------------------------------------------------------
@@ -278,8 +305,13 @@
         const rawItems = Array.isArray(parsed.items) && parsed.items.length > 0
           ? parsed.items.filter(i => i.id !== 'exp_visa_2027-05' && i.category !== 'visa')
           : createDefaultSchedule();
+        const loadedSettings = { ...DEFAULT_STATE.settings, ...parsed.settings };
+        if (!Array.isArray(loadedSettings.excludedCategories)) {
+          loadedSettings.excludedCategories = [...DEFAULT_EXCLUDED_CATEGORIES];
+        }
         return {
-          settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
+          settings: loadedSettings,
+          categoryBudgets: { ...DEFAULT_CATEGORY_BUDGETS, ...(parsed.categoryBudgets || {}) },
           items: normalizeItems(rawItems)
         };
       }
@@ -638,12 +670,21 @@
   }
 
   // --------------------------------------------------------------------------
-  // 9-Month Financial Calculations Engine
+  // 9-Month Financial Calculations Engine (Hybrid Actuals vs. Budget Forecast)
   // --------------------------------------------------------------------------
+  function getEffectiveCurrentMonth() {
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    if (currentYm < MONTH_KEYS[0]) return MONTH_KEYS[0];
+    if (currentYm > MONTH_KEYS[MONTH_KEYS.length - 1]) return MONTH_KEYS[MONTH_KEYS.length - 1];
+    return currentYm;
+  }
+
   function calculate9MonthSchedule() {
     const goal = Number(appState.settings.savingsGoal) || 6500;
     const initialSaved = Number(appState.settings.initialSaved) || 2800;
     const activeMonth = appState.settings.activeMonth || '2026-10';
+    const effectiveCurrentMonth = getEffectiveCurrentMonth();
 
     const remainingToSave = Math.max(0, goal - initialSaved);
     const requiredMonthlyRate = remainingToSave / MONTH_KEYS.length; // 9 months
@@ -654,14 +695,73 @@
     let categoryOverrunsActiveMonth = [];
 
     MONTH_KEYS.forEach((mKey, idx) => {
+      const isPast = mKey < effectiveCurrentMonth;
+      const isCurrent = mKey === effectiveCurrentMonth;
+      const isFuture = mKey > effectiveCurrentMonth;
+      const temporalState = isPast ? 'past' : (isCurrent ? 'current' : 'future');
+
       const monthItems = appState.items.filter(i => i.month === mKey);
       const incomes = monthItems.filter(i => i.type === 'income');
       const expenses = monthItems.filter(i => i.type === 'expense');
 
       const incomeTotal = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-      const expenseTotal = expenses.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-      const expenseBudgetTotal = expenses.reduce((sum, i) => sum + (Number(i.budgetLimit) || Number(i.amount) || 0), 0);
+      const actualExpenseTotal = expenses.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
+      // Category-level monthly budgets & spending for this month
+      const categoryTotals = {};
+      const catBudgets = appState.categoryBudgets || DEFAULT_CATEGORY_BUDGETS;
+      const excludedCats = (appState.settings && Array.isArray(appState.settings.excludedCategories))
+        ? appState.settings.excludedCategories
+        : DEFAULT_EXCLUDED_CATEGORIES;
+
+      Object.keys(CATEGORY_META).forEach(cat => {
+        if (!['salary', 'freelance', 'tutoring', 'gift', 'other_income'].includes(cat)) {
+          const isExcluded = excludedCats.includes(cat);
+          categoryTotals[cat] = {
+            spent: 0,
+            budget: isExcluded ? 0 : (Number(catBudgets[cat]) || 0),
+            isExcluded
+          };
+        }
+      });
+
+      expenses.forEach(item => {
+        const cat = item.category || 'other_expense';
+        if (!categoryTotals[cat]) {
+          const isExcluded = excludedCats.includes(cat);
+          categoryTotals[cat] = {
+            spent: 0,
+            budget: isExcluded ? 0 : (Number(catBudgets[cat]) || 0),
+            isExcluded
+          };
+        }
+        categoryTotals[cat].spent += Number(item.amount) || 0;
+      });
+
+      // Hybrid calculation:
+      // - Excluded / milestone categories (flights, insurance, etc.): count actual scheduled spend across all months.
+      // - Budgeted categories:
+      //   * Past and Current months: count ACTUAL amount spent.
+      //   * Future months: count PLANNED category budget (or higher if user scheduled specific expenses exceeding budget).
+      let effectiveExpenseTotal = 0;
+      Object.keys(categoryTotals).forEach(cat => {
+        const info = categoryTotals[cat];
+        if (info.isExcluded) {
+          effectiveExpenseTotal += info.spent;
+        } else {
+          if (isFuture) {
+            effectiveExpenseTotal += Math.max(info.budget, info.spent);
+          } else {
+            effectiveExpenseTotal += info.spent;
+          }
+        }
+      });
+
+      const expenseBudgetTotal = Object.values(categoryTotals)
+        .filter(c => !c.isExcluded)
+        .reduce((sum, c) => sum + (c.budget || 0), 0);
+
+      const expenseTotal = effectiveExpenseTotal;
       const netSavings = incomeTotal - expenseTotal;
       runningBalance += netSavings;
 
@@ -670,22 +770,18 @@
       const paceGap = runningBalance - idealTarget; // positive = ahead, negative = deficit
 
       if (netSavings < 0) {
-        negativeCashflowMonths.push({ month: mKey, name: MONTH_NAMES[mKey].full, deficit: Math.abs(netSavings) });
+        negativeCashflowMonths.push({
+          month: mKey,
+          name: MONTH_NAMES[mKey].full,
+          deficit: Math.abs(netSavings),
+          isFuture
+        });
       }
-
-      // Check category overruns for this month
-      const categoryTotals = {};
-      expenses.forEach(item => {
-        const cat = item.category || 'other_expense';
-        if (!categoryTotals[cat]) categoryTotals[cat] = { spent: 0, budget: 0 };
-        categoryTotals[cat].spent += Number(item.amount) || 0;
-        categoryTotals[cat].budget += Number(item.budgetLimit) || Number(item.amount) || 0;
-      });
 
       if (mKey === activeMonth) {
         Object.keys(categoryTotals).forEach(cat => {
           const info = categoryTotals[cat];
-          if (info.budget > 0 && info.spent > info.budget) {
+          if (!info.isExcluded && info.budget > 0 && info.spent > info.budget) {
             categoryOverrunsActiveMonth.push({
               category: cat,
               name: CATEGORY_META[cat]?.name || cat,
@@ -700,7 +796,13 @@
       monthStats.push({
         key: mKey,
         name: MONTH_NAMES[mKey],
+        temporalState,
+        isPast,
+        isCurrent,
+        isFuture,
         incomeTotal,
+        actualExpenseTotal,
+        effectiveExpenseTotal,
         expenseTotal,
         expenseBudgetTotal,
         netSavings,
@@ -865,12 +967,17 @@
       const isDep = stat.name.isDeparture;
       const netSign = stat.netSavings >= 0 ? '+' : '';
       const dotClass = stat.netSavings < 0 ? 'dot-red' : (stat.isOnTrack ? 'dot-green' : 'dot-yellow');
+      const modeTag = stat.isCurrent
+        ? '<span class="month-mode-tag tag-live">Live</span>'
+        : (stat.isPast
+          ? '<span class="month-mode-tag tag-past">Actual</span>'
+          : '<span class="month-mode-tag tag-forecast">Forecast</span>');
 
       return `
         <button type="button" class="month-strip-btn ${isActive ? 'active' : ''} ${isDep ? 'is-departure' : ''}"
           role="tab" aria-selected="${isActive}"
           onclick="window.SakuraApp.selectMonth('${stat.key}')"
-          title="Click to view and edit budget for ${stat.name.full}">
+          title="Click to view and edit budget for ${stat.name.full} (${stat.temporalState.toUpperCase()})">
           <div class="month-strip-header">
             <span class="month-strip-name">${stat.name.short}</span>
             <span class="month-status-dot ${dotClass}" title="${stat.netSavings < 0 ? 'Negative cashflow' : (stat.isOnTrack ? 'On track' : 'Pace gap')}"></span>
@@ -881,6 +988,7 @@
           <div class="month-strip-cumul">
             Total: <strong>${formatEURShort(stat.runningBalance)}</strong>
           </div>
+          <div>${modeTag}</div>
         </button>
       `;
     }).join('');
@@ -897,9 +1005,21 @@
     DOM.metricSelectedIncome.textContent = formatEUR(act.incomeTotal);
     DOM.metricIncomeCount.textContent = `${act.incomesCount} income items scheduled`;
 
-    DOM.lblSelectedMonthExpense.textContent = `${monthName} Planned Expenses`;
-    DOM.metricSelectedExpense.textContent = formatEUR(act.expenseTotal);
-    DOM.metricBudgetVsSpend.textContent = `Budget limit: ${formatEUR(act.expenseBudgetTotal)}`;
+    if (act.isFuture) {
+      DOM.lblSelectedMonthExpense.textContent = `${monthName} Projected Expenses`;
+      DOM.metricSelectedExpense.textContent = formatEUR(act.expenseTotal);
+      const milestonePart = act.expenseTotal - act.expenseBudgetTotal;
+      DOM.metricBudgetVsSpend.textContent = milestonePart > 0
+        ? `Budget pool: ${formatEUR(act.expenseBudgetTotal)} + ${formatEUR(milestonePart)} milestone`
+        : `Budget pool: ${formatEUR(act.expenseBudgetTotal)}`;
+    } else {
+      DOM.lblSelectedMonthExpense.textContent = `${monthName} Actual Expenses`;
+      DOM.metricSelectedExpense.textContent = formatEUR(act.actualExpenseTotal);
+      const remaining = act.expenseBudgetTotal - act.actualExpenseTotal;
+      DOM.metricBudgetVsSpend.textContent = remaining >= 0
+        ? `Budget ceiling: ${formatEUR(act.expenseBudgetTotal)} (${formatEUR(remaining)} remaining)`
+        : `Budget ceiling: ${formatEUR(act.expenseBudgetTotal)} (+${formatEUR(Math.abs(remaining))} over)`;
+    }
 
     DOM.lblSelectedMonthNet.textContent = `${monthName} Net Savings`;
     DOM.metricSelectedNet.textContent = `${act.netSavings >= 0 ? '+' : ''}${formatEUR(act.netSavings)}`;
@@ -965,8 +1085,8 @@
       <svg viewBox="0 0 ${width} ${height}" class="chart-svg" preserveAspectRatio="none">
         <defs>
           <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#10b981' : '#f43f5e'}" stop-opacity="0.32"/>
-            <stop offset="100%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#10b981' : '#f43f5e'}" stop-opacity="0.0"/>
+            <stop offset="0%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stop-opacity="0.0"/>
           </linearGradient>
         </defs>
 
@@ -985,7 +1105,7 @@
         <path d="${targetPathD}" fill="none" stroke="var(--brand-gold)" stroke-width="2" stroke-dasharray="5 4"/>
 
         <!-- Scheduled Path Line (Solid Emerald or Rose) -->
-        <path d="${actualPathD}" fill="none" stroke="${calc.finalJuneBalance >= calc.goal ? '#10b981' : '#f43f5e'}" stroke-width="3"/>
+        <path d="${actualPathD}" fill="none" stroke="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stroke-width="3"/>
     `;
 
     dataPoints.forEach((p, idx) => {
@@ -1001,7 +1121,7 @@
 
         <!-- Interactive Dot -->
         <circle cx="${x}" cy="${y}" r="${isSelected ? 6 : 4.5}"
-          fill="${p.runningBalance >= p.idealTarget ? '#10b981' : '#f43f5e'}"
+          fill="${p.runningBalance >= p.idealTarget ? '#c3e88d' : '#f07178'}"
           stroke="#ffffff" stroke-width="${isSelected ? 2.5 : 1.5}"
           class="chart-dot"
           data-month="${p.name.full}"
@@ -1033,8 +1153,11 @@
           ? `<span style="color:var(--brand-emerald)">+${formatEUR(gap)} ahead of schedule</span>`
           : `<span style="color:var(--brand-crimson)">${formatEUR(Math.abs(gap))} behind pace</span>`;
 
+        const statPoint = dataPoints.find(p => p.name.full === month);
+        const modeLabel = statPoint?.isCurrent ? '📍 Live Actuals' : (statPoint?.isPast ? '📜 Past Actuals' : '🔮 Budget Forecast');
+
         tooltipElem.innerHTML = `
-          <strong>${month}</strong><br>
+          <strong>${month}</strong> <small style="color:var(--text-muted)">(${modeLabel})</small><br>
           Monthly Net: <strong>${net >= 0 ? '+' : ''}${formatEUR(net)}</strong><br>
           Cumulative Saved: <strong>${formatEUR(cumul)}</strong><br>
           Target: ${formatEUR(target)} (${gapHtml})
@@ -1080,8 +1203,21 @@
     const totalExpense = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
     if (expenses.length === 0 || totalExpense === 0) {
-      DOM.donutSvgContainer.innerHTML = `<div style="text-align:center;font-size:0.8rem;color:var(--text-muted);padding:2rem 0;">No expenses recorded</div>`;
-      DOM.donutLegendContainer.innerHTML = '';
+      const size = 160;
+      const radius = 62;
+      DOM.donutSvgContainer.innerHTML = `
+        <svg viewBox="0 0 ${size} ${size}" class="donut-svg">
+          <circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="var(--border-subtle)" stroke-width="16" stroke-dasharray="4 4"/>
+          <text x="${size / 2}" y="${size / 2 - 4}" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-weight="700">TOTAL</text>
+          <text x="${size / 2}" y="${size / 2 + 15}" text-anchor="middle" font-size="13" fill="var(--text-muted)" font-weight="800">€0</text>
+        </svg>
+      `;
+      DOM.donutLegendContainer.innerHTML = `
+        <div class="donut-empty-legend">
+          <span style="color:var(--text-secondary);font-weight:500;">No expenses recorded</span>
+          <span style="color:var(--text-muted);font-size:0.7rem;">No spending logged for ${MONTH_NAMES[calc.activeMonth]?.short || 'this month'}.</span>
+        </div>
+      `;
       return;
     }
 
@@ -1136,9 +1272,11 @@
 
     DOM.donutLegendContainer.innerHTML = categories.map(cat => `
       <div class="donut-legend-row">
-        <div class="donut-legend-info" title="${cat.name}">
+        <div class="donut-legend-info" title="${cat.name}: ${formatEUR(cat.amount)} (${cat.percent.toFixed(0)}%)">
           <span class="legend-color-chip" style="background-color: ${cat.color};"></span>
-          <span>${cat.icon} ${cat.name} (${cat.percent.toFixed(0)}%)</span>
+          <span>${cat.icon}</span>
+          <span class="donut-legend-name">${cat.name}</span>
+          <span class="donut-legend-pct">(${cat.percent.toFixed(0)}%)</span>
         </div>
         <div class="donut-legend-amt">${formatEUR(cat.amount)}</div>
       </div>
@@ -1167,17 +1305,15 @@
 
     DOM.expensesCount.textContent = expenses.length;
     DOM.expensesTableBody.innerHTML = expenses.length === 0
-      ? `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No expense items for this view.</td></tr>`
+      ? `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.5rem;">No expense items for this view.</td></tr>`
       : expenses.map(item => {
         const catMeta = CATEGORY_META[item.category] || CATEGORY_META.other_expense;
-        const budget = Number(item.budgetLimit) || 0;
         const spent = Number(item.amount) || 0;
-        const isExceeded = budget > 0 && spent > budget;
-        const rowClass = isExceeded ? 'row-danger' : '';
         const monthLabel = MONTH_NAMES[item.month]?.short || item.month;
+        const isRecurring = !!item.isRecurring;
 
         return `
-          <tr class="${rowClass}">
+          <tr>
             <td><span class="month-badge">${monthLabel}</span></td>
             <td>
               <span class="category-badge" style="border-left: 3px solid ${catMeta.color}">
@@ -1187,16 +1323,12 @@
             </td>
             <td>
               <strong>${escapeHtml(item.title)}</strong>
-              ${item.isRecurring ? '<span class="badge-recurring" title="Fixed repeating expense across all months">🔁 Fixed</span>' : ''}
             </td>
-            <td>${budget > 0 ? formatEUR(budget) : '<span style="color:var(--text-muted)">—</span>'}</td>
             <td><strong>${formatEUR(spent)}</strong></td>
             <td>
-              ${budget > 0
-            ? (isExceeded
-              ? `<span class="status-chip chip-danger">⚠️ +${formatEUR(spent - budget)} Over</span>`
-              : `<span class="status-chip chip-safe">✅ Within Limit</span>`)
-            : `<span class="status-chip" style="background:var(--bg-tertiary);color:var(--text-muted)">No Limit</span>`}
+              ${isRecurring
+                ? '<span class="badge-recurring" title="Fixed repeating expense across all months">🔁 Fixed Monthly</span>'
+                : '<span class="status-chip chip-neutral" style="color:var(--text-muted)">Single Month</span>'}
             </td>
             <td class="text-right">
               <div class="table-row-actions">
@@ -1209,12 +1341,10 @@
       }).join('');
 
     const totalExpensesAmount = expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    const totalExpensesBudget = expenses.reduce((sum, item) => sum + (Number(item.budgetLimit) || 0), 0);
     if (DOM.expensesTableFoot) {
       DOM.expensesTableFoot.innerHTML = expenses.length === 0 ? '' : `
         <tr style="background: var(--bg-tertiary); font-weight: bold;">
           <td colspan="3" class="text-right" style="text-align: right; padding-right: 1rem;">Total:</td>
-          <td>${totalExpensesBudget > 0 ? formatEUR(totalExpensesBudget) : '<span style="color:var(--text-muted)">—</span>'}</td>
           <td>${formatEUR(totalExpensesAmount)}</td>
           <td colspan="2"></td>
         </tr>
@@ -1337,10 +1467,16 @@
       const netSign = stat.netSavings >= 0 ? '+' : '';
       const rowClass = isActive ? 'active-month-row' : (isDep ? 'departure-month-row' : '');
 
+      const modeChip = stat.isCurrent
+        ? `<span class="status-chip chip-live" style="font-size:0.65rem">📍 Live</span>`
+        : (stat.isPast
+          ? `<span class="status-chip chip-neutral" style="font-size:0.65rem">📜 Actuals</span>`
+          : `<span class="status-chip chip-forecast" style="font-size:0.65rem">🔮 Budget</span>`);
+
       return `
         <tr class="${rowClass}">
           <td>
-            <strong>${stat.name.full}</strong> ${isDep ? '🎯' : ''} ${isActive ? '<span class="status-chip chip-safe" style="font-size:0.65rem">Active</span>' : ''}
+            <strong>${stat.name.full}</strong> ${isDep ? '🎯' : ''} ${isActive ? '<span class="status-chip chip-safe" style="font-size:0.65rem">Active</span>' : ''} ${modeChip}
           </td>
           <td class="text-emerald">${formatEUR(stat.incomeTotal)}</td>
           <td class="text-rose">${formatEUR(stat.expenseTotal)}</td>
@@ -1363,43 +1499,76 @@
 
     // 4. Category Budgets (For Active Month)
     const activeStats = calc.activeData;
-    const catKeys = Object.keys(activeStats.categoryTotals);
+    const allCatKeys = Object.keys(activeStats.categoryTotals);
+    const budgetedKeys = allCatKeys.filter(k => !activeStats.categoryTotals[k].isExcluded);
+    const excludedKeys = allCatKeys.filter(k => activeStats.categoryTotals[k].isExcluded);
 
-    if (catKeys.length === 0) {
+    if (allCatKeys.length === 0) {
       DOM.categoryBudgetsGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:2rem;">No category expenses recorded for ${activeStats.name.full}.</div>`;
     } else {
-      DOM.categoryBudgetsGrid.innerHTML = catKeys.map(key => {
+      const renderCard = (key, isExcluded) => {
         const meta = CATEGORY_META[key] || CATEGORY_META.other_expense;
         const data = activeStats.categoryTotals[key];
-        const isExceeded = data.budget > 0 && data.spent > data.budget;
-        const fillPercent = data.budget > 0 ? Math.min(100, (data.spent / data.budget) * 100) : 100;
+        const isExceeded = !isExcluded && data.budget > 0 && data.spent > data.budget;
+        const fillPercent = !isExcluded && data.budget > 0 ? Math.min(100, (data.spent / data.budget) * 100) : (data.spent > 0 ? 100 : 0);
         const excess = data.spent - data.budget;
+        const remaining = data.budget - data.spent;
+
+        let statusChipHtml = '';
+        if (isExcluded) {
+          statusChipHtml = `<span class="status-chip chip-neutral" style="color:var(--text-muted)">Milestone (No ceiling)</span>`;
+        } else if (isExceeded) {
+          statusChipHtml = `<span class="status-chip chip-danger">⚠️ +${formatEUR(excess)} OVER</span>`;
+        } else if (data.budget > 0) {
+          statusChipHtml = `<span class="status-chip chip-safe">${fillPercent.toFixed(0)}% used</span>`;
+        } else if (data.spent > 0) {
+          statusChipHtml = `<span class="status-chip chip-warn">No Budget Set</span>`;
+        } else {
+          statusChipHtml = `<span class="status-chip" style="color:var(--text-muted)">Unused</span>`;
+        }
 
         return `
-          <div class="category-budget-card ${isExceeded ? 'budget-exceeded' : ''}">
+          <div class="category-budget-card ${isExceeded ? 'budget-exceeded' : ''} ${isExcluded ? 'is-excluded' : ''}"
+            style="cursor: pointer;" onclick="window.SakuraApp.openCategoryBudgetsModal('${key}')"
+            title="Click to configure budget for ${meta.name}">
             <div class="cat-card-header">
               <div class="cat-card-title">
                 <span>${meta.icon}</span>
                 <span>${meta.name}</span>
               </div>
               <div>
-                ${isExceeded
-            ? `<span class="status-chip chip-danger">⚠️ +${formatEUR(excess)} OVER</span>`
-            : `<span class="status-chip chip-safe">${fillPercent.toFixed(0)}%</span>`}
+                ${statusChipHtml}
               </div>
             </div>
 
             <div class="cat-progress-bar-bg">
-              <div class="cat-progress-bar-fill" style="width: ${fillPercent}%; background: ${isExceeded ? 'var(--brand-crimson)' : meta.color};"></div>
+              <div class="cat-progress-bar-fill" style="width: ${fillPercent}%; background: ${isExcluded ? 'var(--text-muted)' : (isExceeded ? 'var(--brand-crimson)' : meta.color)};"></div>
             </div>
 
             <div class="cat-card-numbers">
               <span>Spent: <strong>${formatEUR(data.spent)}</strong></span>
-              <span>Limit: <strong>${data.budget > 0 ? formatEUR(data.budget) : 'None'}</strong></span>
+              <span>Budget: <strong>${!isExcluded && data.budget > 0 ? formatEUR(data.budget) + '/mo' : (isExcluded ? 'Excluded' : 'None')}</strong></span>
+            </div>
+            <div class="cat-card-numbers" style="margin-top: -0.2rem; font-size: 0.69rem;">
+              <span>${isExcluded ? '<span style="color:var(--text-muted)">Milestone expense</span>' : (isExceeded ? `<span style="color:var(--cli-red)">Over by ${formatEUR(excess)}</span>` : (data.budget > 0 ? `<span style="color:var(--cli-green)">Remaining: ${formatEUR(remaining)}</span>` : '<span style="color:var(--text-muted)">No monthly limit</span>'))}</span>
+              <span style="color: var(--cli-blue); text-decoration: underline;">⚙️ Configure</span>
             </div>
           </div>
         `;
-      }).join('');
+      };
+
+      let gridHtml = budgetedKeys.map(k => renderCard(k, false)).join('');
+
+      if (excludedKeys.length > 0) {
+        gridHtml += `
+          <div class="category-budgets-section-divider">
+            <span>✈️ Milestone &amp; Excluded Categories (No Monthly Ceiling)</span>
+          </div>
+        `;
+        gridHtml += excludedKeys.map(k => renderCard(k, true)).join('');
+      }
+
+      DOM.categoryBudgetsGrid.innerHTML = gridHtml;
     }
   }
 
@@ -1652,6 +1821,182 @@
         syncPush(true);
       });
     }
+
+    // Category-Level Monthly Budgets Modal Events
+    if (DOM.categoryBudgetsForm) {
+      DOM.categoryBudgetsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newBudgets = {};
+        const newExcluded = [];
+        if (DOM.categoryBudgetsInputsContainer) {
+          DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input-item').forEach(item => {
+            const cb = item.querySelector('.cat-exclude-checkbox');
+            const inp = item.querySelector('.category-budget-input');
+            const cat = inp.name;
+            const val = Number(inp.value) || 0;
+            newBudgets[cat] = Math.max(0, val);
+            if (cb && !cb.checked) {
+              newExcluded.push(cat);
+            }
+          });
+        }
+        appState.categoryBudgets = newBudgets;
+        if (!appState.settings) appState.settings = {};
+        appState.settings.excludedCategories = newExcluded;
+        saveState();
+        if (DOM.categoryBudgetsModal) DOM.categoryBudgetsModal.close();
+        renderApp();
+      });
+    }
+
+    if (DOM.openCategoryBudgetsModalBtn) {
+      DOM.openCategoryBudgetsModalBtn.addEventListener('click', () => {
+        openCategoryBudgetsModal();
+      });
+    }
+
+    if (DOM.heroCategoryBudgetsBtn) {
+      DOM.heroCategoryBudgetsBtn.addEventListener('click', () => {
+        openCategoryBudgetsModal();
+      });
+    }
+
+    if (DOM.txCategory) {
+      DOM.txCategory.addEventListener('change', () => {
+        updateTxCategoryHint();
+      });
+    }
+  }
+
+  function updateCategoryBudgetsModalTotal() {
+    if (!DOM.categoryBudgetsInputsContainer || !DOM.categoryBudgetsTotalDisplay) return;
+    let sum = 0;
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input-item').forEach(item => {
+      const cb = item.querySelector('.cat-exclude-checkbox');
+      const inp = item.querySelector('.category-budget-input');
+      if (cb && cb.checked && inp) {
+        sum += Number(inp.value) || 0;
+      }
+    });
+    DOM.categoryBudgetsTotalDisplay.textContent = `${formatEUR(sum)} / month`;
+  }
+
+  function openCategoryBudgetsModal(focusCatKey = null) {
+    if (!DOM.categoryBudgetsInputsContainer || !DOM.categoryBudgetsModal) return;
+
+    const catBudgets = appState.categoryBudgets || DEFAULT_CATEGORY_BUDGETS;
+    const excludedCats = (appState.settings && Array.isArray(appState.settings.excludedCategories))
+      ? appState.settings.excludedCategories
+      : DEFAULT_EXCLUDED_CATEGORIES;
+
+    const expenseCategories = Object.keys(CATEGORY_META).filter(cat =>
+      !['salary', 'freelance', 'tutoring', 'gift', 'other_income'].includes(cat)
+    );
+
+    DOM.categoryBudgetsInputsContainer.innerHTML = expenseCategories.map(catKey => {
+      const meta = CATEGORY_META[catKey] || CATEGORY_META.other_expense;
+      const isExcluded = excludedCats.includes(catKey);
+      const currentVal = catBudgets[catKey] !== undefined ? catBudgets[catKey] : (DEFAULT_CATEGORY_BUDGETS[catKey] || 0);
+
+      return `
+        <div class="category-budget-input-item ${isExcluded ? 'is-excluded' : ''}" id="cat_budget_item_${catKey}">
+          <div class="category-budget-input-header">
+            <label class="category-budget-input-label" for="cat_budget_${catKey}">
+              <span>${meta.icon}</span>
+              <span>${meta.name}</span>
+            </label>
+            <label class="category-exclude-toggle" title="Toggle monthly budget ceiling for ${meta.name}">
+              <input type="checkbox" class="cat-exclude-checkbox" data-cat="${catKey}" ${!isExcluded ? 'checked' : ''}>
+              <span class="cat-toggle-text ${!isExcluded ? 'is-active' : 'is-excluded'}">${!isExcluded ? 'Budgeted' : 'Excluded'}</span>
+            </label>
+          </div>
+          <div class="input-with-addon" style="${isExcluded ? 'opacity: 0.45; pointer-events: none;' : ''}">
+            <input type="number" id="cat_budget_${catKey}" name="${catKey}" min="0" step="10"
+              class="form-control category-budget-input" value="${currentVal}" ${isExcluded ? 'disabled' : ''}>
+            <span class="input-addon">€/mo</span>
+          </div>
+          <div class="category-budget-subtext">
+            ${isExcluded
+              ? '<span style="color:var(--text-muted)">Excluded from monthly ceiling &amp; warnings</span>'
+              : '<span style="color:var(--cli-green)">Active monthly pool</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    updateCategoryBudgetsModalTotal();
+
+    // Dynamically calculate and update total pool as inputs and toggles change
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.cat-exclude-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const item = cb.closest('.category-budget-input-item');
+        const inputWrap = item.querySelector('.input-with-addon');
+        const input = item.querySelector('.category-budget-input');
+        const badge = item.querySelector('.cat-toggle-text');
+        const subtext = item.querySelector('.category-budget-subtext');
+
+        if (cb.checked) {
+          item.classList.remove('is-excluded');
+          inputWrap.style.opacity = '1';
+          inputWrap.style.pointerEvents = 'auto';
+          input.disabled = false;
+          badge.textContent = 'Budgeted';
+          badge.className = 'cat-toggle-text is-active';
+          subtext.innerHTML = '<span style="color:var(--cli-green)">Active monthly pool</span>';
+        } else {
+          item.classList.add('is-excluded');
+          inputWrap.style.opacity = '0.45';
+          inputWrap.style.pointerEvents = 'none';
+          input.disabled = true;
+          badge.textContent = 'Excluded';
+          badge.className = 'cat-toggle-text is-excluded';
+          subtext.innerHTML = '<span style="color:var(--text-muted)">Excluded from monthly ceiling &amp; warnings</span>';
+        }
+        updateCategoryBudgetsModalTotal();
+      });
+    });
+
+    DOM.categoryBudgetsInputsContainer.querySelectorAll('.category-budget-input').forEach(inp => {
+      inp.addEventListener('input', updateCategoryBudgetsModalTotal);
+    });
+
+    try {
+      DOM.categoryBudgetsModal.showModal();
+    } catch (e) {
+      DOM.categoryBudgetsModal.setAttribute('open', '');
+    }
+
+    if (focusCatKey) {
+      const targetInput = document.getElementById(`cat_budget_${focusCatKey}`);
+      if (targetInput) {
+        setTimeout(() => {
+          targetInput.focus();
+          targetInput.select();
+        }, 50);
+      }
+    }
+  }
+
+  function updateTxCategoryHint() {
+    if (!DOM.txCategoryHint || !DOM.txCategory) return;
+    const selCat = DOM.txCategory.value;
+    const typeRadio = document.querySelector('input[name="txType"]:checked');
+    const type = typeRadio ? typeRadio.value : 'expense';
+
+    if (type !== 'expense') {
+      DOM.txCategoryHint.innerHTML = '';
+      return;
+    }
+
+    const excludedCats = (appState.settings && Array.isArray(appState.settings.excludedCategories))
+      ? appState.settings.excludedCategories
+      : DEFAULT_EXCLUDED_CATEGORIES;
+
+    if (excludedCats.includes(selCat)) {
+      DOM.txCategoryHint.innerHTML = '<span style="color:var(--cli-blue)">ℹ️ Milestone category (excluded from monthly budget ceiling &amp; overrun warnings)</span>';
+    } else {
+      DOM.txCategoryHint.innerHTML = '<span style="color:var(--text-muted)">✓ Active living budget (draws from monthly pool)</span>';
+    }
   }
 
   function updateTxModalCategories(type) {
@@ -1668,13 +2013,11 @@
       DOM.txCategory.appendChild(opt);
     });
 
-    if (type === 'expense') {
-      if (DOM.budgetLimitGroup) DOM.budgetLimitGroup.style.display = 'flex';
-      if (DOM.txAmountLabel) DOM.txAmountLabel.textContent = 'Planned Expense Amount (€):';
-    } else {
-      if (DOM.budgetLimitGroup) DOM.budgetLimitGroup.style.display = 'none';
-      if (DOM.txAmountLabel) DOM.txAmountLabel.textContent = 'Planned Income Amount (€):';
+    if (DOM.txAmountLabel) {
+      DOM.txAmountLabel.textContent = type === 'expense' ? 'Planned Expense Amount (€):' : 'Planned Income Amount (€):';
     }
+
+    updateTxCategoryHint();
   }
 
   function openTransactionModal(existingItem = null, defaultMonth = null, forceFixed = false) {
@@ -1687,7 +2030,6 @@
       DOM.txMonth.value = existingItem.month;
       DOM.txTitle.value = existingItem.title;
       DOM.txAmount.value = existingItem.amount;
-      DOM.txBudgetLimit.value = existingItem.budgetLimit || '';
 
       const radio = document.querySelector(`input[name="txType"][value="${existingItem.type}"]`);
       if (radio) radio.checked = true;
@@ -1714,7 +2056,6 @@
       DOM.txMonth.value = targetMonth;
       DOM.txTitle.value = '';
       DOM.txAmount.value = '';
-      DOM.txBudgetLimit.value = '';
 
       if (DOM.editScopeGroup) DOM.editScopeGroup.style.display = 'none';
       if (DOM.frequencyGroup) DOM.frequencyGroup.style.display = 'flex';
@@ -1737,7 +2078,6 @@
     const title = DOM.txTitle.value.trim();
     const category = DOM.txCategory.value;
     const amount = Number(DOM.txAmount.value) || 0;
-    const budgetLimit = type === 'expense' && DOM.txBudgetLimit.value ? Number(DOM.txBudgetLimit.value) : undefined;
 
     let updateAllMonths = false;
     let existingItem = null;
@@ -1769,7 +2109,6 @@
           appState.items[existingIdx].title = title;
           appState.items[existingIdx].category = category;
           appState.items[existingIdx].amount = amount;
-          appState.items[existingIdx].budgetLimit = budgetLimit;
           appState.items[existingIdx].isRecurring = true;
           appState.items[existingIdx].recurringKey = recKey;
         } else {
@@ -1780,7 +2119,6 @@
             title,
             category,
             amount,
-            budgetLimit,
             isRecurring: true,
             recurringKey: recKey
           });
@@ -1798,7 +2136,6 @@
             title,
             category,
             amount,
-            budgetLimit,
             isRecurring: false
           };
         }
@@ -1810,7 +2147,6 @@
           title,
           category,
           amount,
-          budgetLimit,
           isRecurring: false
         });
       }
@@ -2014,6 +2350,9 @@
           DOM.syncModal.setAttribute('open', '');
         }
       }
+    },
+    openCategoryBudgetsModal: function (focusCatKey) {
+      openCategoryBudgetsModal(focusCatKey);
     },
     syncPull: function (feedback) {
       return syncPull(feedback);

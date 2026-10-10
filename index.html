@@ -82,6 +82,7 @@
             <div class="hero-quick-actions">
               <button id="editGoalBtn" class="btn btn-glass btn-sm">⚙️ Edit Savings Goal</button>
               <button id="quickAddSavedBtn" class="btn btn-primary btn-sm">➕ Adjust Initial Savings</button>
+              <button id="heroCategoryBudgetsBtn" class="btn btn-secondary btn-sm">📊 Set Category Budgets</button>
             </div>
           </div>
 
@@ -323,9 +324,8 @@
                   <th>Month</th>
                   <th>Category</th>
                   <th>Description</th>
-                  <th>Budget Limit (€)</th>
-                  <th>Spent (€)</th>
-                  <th>Budget Status</th>
+                  <th>Amount (€)</th>
+                  <th>Frequency</th>
                   <th class="text-right">Actions</th>
                 </tr>
               </thead>
@@ -424,6 +424,17 @@
 
         <!-- Tab 4: Category Budgets Overview -->
         <div class="tab-panel" id="panelBudgets" role="tabpanel">
+          <div class="budgets-header-bar">
+            <div>
+              <div class="card-pretitle">MONTHLY POOLS FOR ACTIVE MONTH</div>
+              <p class="budgets-header-desc">
+                Expenses you add each month are automatically deducted from these category pools.
+              </p>
+            </div>
+            <button id="openCategoryBudgetsModalBtn" class="btn btn-primary btn-sm">
+              ⚙️ Set Monthly Category Budgets
+            </button>
+          </div>
           <div class="category-budgets-grid" id="categoryBudgetsGrid">
             <!-- Category budget cards with spend vs budget progress bars rendered here -->
           </div>
@@ -594,32 +605,51 @@
             <select id="txCategory" class="form-control" required>
               <!-- Filled dynamically based on type -->
             </select>
+            <div id="txCategoryHint" class="category-hint-pill"></div>
           </div>
         </div>
 
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="txAmount" id="txAmountLabel">Amount (€):</label>
-            <div class="input-with-addon">
-              <input type="number" id="txAmount" min="0" step="0.01" required class="form-control" placeholder="0.00">
-              <span class="input-addon">EUR (€)</span>
-            </div>
-          </div>
-
-          <div class="form-group" id="budgetLimitGroup">
-            <label for="txBudgetLimit">Monthly Budget Limit (€):</label>
-            <div class="input-with-addon">
-              <input type="number" id="txBudgetLimit" min="0" step="0.01" class="form-control"
-                placeholder="Optional budget limit">
-              <span class="input-addon">EUR (€)</span>
-            </div>
-            <small class="helper-text">Triggers a warning if actual spend exceeds this!</small>
+        <div class="form-group">
+          <label for="txAmount" id="txAmountLabel">Amount (€):</label>
+          <div class="input-with-addon">
+            <input type="number" id="txAmount" min="0" step="0.01" required class="form-control" placeholder="0.00">
+            <span class="input-addon">EUR (€)</span>
           </div>
         </div>
 
         <div class="dialog-actions">
           <button type="button" class="btn btn-secondary" data-close="transactionModal">Cancel</button>
           <button type="submit" class="btn btn-primary" id="txSaveBtn">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Modal: Configure Category Budgets -->
+  <dialog id="categoryBudgetsModal" class="app-dialog" aria-labelledby="categoryBudgetsModalTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 id="categoryBudgetsModalTitle" class="dialog-title">📊 Set Monthly Category Budgets</h3>
+        <button type="button" class="dialog-close-btn" data-close="categoryBudgetsModal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <form id="categoryBudgetsForm" method="dialog">
+        <p class="sync-description">
+          Define your target monthly budget limit for each expense category. When adding expenses (e.g. groceries, dining out, transport), they will automatically draw down from these monthly pools.
+        </p>
+
+        <div class="category-budgets-modal-grid" id="categoryBudgetsInputsContainer">
+          <!-- Dynamically populated category budget inputs -->
+        </div>
+
+        <div class="category-budgets-total-pill">
+          <span>Total Monthly Planned Expense Budget:</span>
+          <strong id="categoryBudgetsTotalDisplay" class="text-accent">€0.00 / month</strong>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" data-close="categoryBudgetsModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveCategoryBudgetsBtn">Save Category Budgets</button>
         </div>
       </form>
     </div>
@@ -698,7 +728,7 @@
   <input type="file" id="importFileInput" accept=".json" style="display: none;">
 
   <!-- Scripts -->
-  <script src="app.js?v=20261009_v3"></script>
+  <script src="app.js?v=20261010_excl"></script>
 </body>
 
 </html>
