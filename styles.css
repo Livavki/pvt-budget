@@ -1,38 +1,39 @@
 /* ==========================================================================
-   SakuraBudget CLI 2027 — Minimal Terminal Dialog Theme
-   Flat background · 1px boxes · monospace · no shadows, no gradients
+   SakuraBudget CLI 2027 — Rosé Pine Theme
+   Warm dark velvet background · elegant pastel accents · monospace
    NOTE: All class names / CSS variables referenced from app.js are preserved.
    ========================================================================== */
 
 :root,
 [data-theme="dark"] {
-  --bg-canvas: #292d3e;
-  --bg-panel: #292d3e;
-  --bg-subtle: #32364a;
-  --bg-tertiary: #242838;
-  --bg-surface: #303548;
-  --bg-code: #212433;
-  --bg-active: #373b52;
-  --bg-hover: #32374c;
+  --bg-canvas: #191724;
+  --bg-panel: #1f1d2e;
+  --bg-subtle: #26233a;
+  --bg-tertiary: #191724;
+  --bg-surface: #1f1d2e;
+  --bg-code: #191724;
+  --bg-active: #2a283e;
+  --bg-hover: #26233a;
 
-  --border-subtle: #3a3f58;
-  --border-medium: #4e5577;
-  --border-focus: #82aaff;
+  --border-subtle: #393552;
+  --border-medium: #403d52;
+  --border-focus: #ea9a97;
 
-  --text-primary: #dce0f5;
-  --text-secondary: #a6accd;
-  --text-muted: #676e95;
+  --text-primary: #e0def4;
+  --text-secondary: #908caa;
+  --text-muted: #6e6a86;
   --text-white: #ffffff;
 
-  --cli-blue: #82aaff;
-  --cli-green: #c3e88d;
-  --cli-green-bg: rgba(195, 232, 141, 0.15);
-  --cli-red: #f07178;
-  --cli-red-bg: rgba(240, 113, 120, 0.15);
-  --cli-amber: #ffcb6b;
-  --cli-amber-bg: rgba(255, 203, 107, 0.15);
-  --cli-purple: #c792ea;
-  --cli-cyan: #89ddff;
+  --cli-blue: #9ccfd8;
+  --cli-green: #a6da95;
+  --cli-green-bg: rgba(166, 218, 149, 0.15);
+  --cli-red: #eb6f92;
+  --cli-red-bg: rgba(235, 111, 146, 0.15);
+  --cli-amber: #f6c177;
+  --cli-amber-bg: rgba(246, 193, 119, 0.15);
+  --cli-purple: #c4a7e7;
+  --cli-cyan: #9ccfd8;
+  --cli-rose: #ea9a97;
 
   color-scheme: dark;
 }
@@ -68,36 +69,59 @@
 }
 
 [data-theme="light"] {
-  --bg-canvas: #fafafa; --bg-panel: #fafafa; --bg-subtle: #f0f0f0; --bg-tertiary: #f0f0f0;
-  --bg-code: #fafafa; --bg-active: #e6ecf7; --bg-hover: #f2f2f2;
-  --border-subtle: #cfcfcf; --border-medium: #9a9a9a; --border-focus: #0969da;
-  --text-primary: #1f2328; --text-secondary: #57606a; --text-muted: #8c959f; --text-white: #1f2328;
-  --cli-blue: #0969da; --cli-green: #1a7f37; --cli-green-bg: #dafbe1; --cli-red: #cf222e; --cli-red-bg: #ffebe9;
-  --cli-amber: #9a6700; --cli-amber-bg: #fff4d6; --cli-purple: #8250df; --cli-cyan: #0550ae;
+  --bg-canvas: #faf4ed;
+  --bg-panel: #fffaf3;
+  --bg-subtle: #f2e9e1;
+  --bg-tertiary: #faf4ed;
+  --bg-surface: #fffaf3;
+  --bg-code: #f2e9e1;
+  --bg-active: #ebdfd5;
+  --bg-hover: #f4ece4;
+
+  --border-subtle: #dfdad9;
+  --border-medium: #cecacd;
+  --border-focus: #d7827e;
+
+  --text-primary: #575279;
+  --text-secondary: #797593;
+  --text-muted: #9893a5;
+  --text-white: #ffffff;
+
+  --cli-blue: #286983;
+  --cli-green: #56949f;
+  --cli-green-bg: rgba(86, 148, 159, 0.15);
+  --cli-red: #b4637a;
+  --cli-red-bg: rgba(180, 99, 122, 0.15);
+  --cli-amber: #ea9d34;
+  --cli-amber-bg: rgba(234, 157, 52, 0.15);
+  --cli-purple: #907aa9;
+  --cli-cyan: #56949f;
+  --cli-rose: #d7827e;
+
   color-scheme: light;
 }
 
 /* Semantic aliases (used by app.js inline styles) */
 :root {
-  --brand-color: var(--cli-blue);
-  --brand-sakura: var(--cli-blue);
+  --brand-color: var(--cli-rose, #ea9a97);
+  --brand-sakura: var(--cli-rose, #ea9a97);
   --brand-emerald: var(--cli-green);
   --brand-rose: var(--cli-red);
-  --brand-indigo: var(--cli-blue);
+  --brand-indigo: var(--cli-purple);
   --brand-gold: var(--cli-amber);
   --brand-crimson: var(--cli-red);
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
-  --radius: 3px;
+  --radius: 4px;
 }
 [data-theme] {
-  --brand-color: var(--cli-blue);
-  --brand-sakura: var(--cli-blue);
+  --brand-color: var(--cli-rose, #ea9a97);
+  --brand-sakura: var(--cli-rose, #ea9a97);
   --brand-emerald: var(--cli-green);
   --brand-rose: var(--cli-red);
-  --brand-indigo: var(--cli-blue);
+  --brand-indigo: var(--cli-purple);
   --brand-gold: var(--cli-amber);
   --brand-crimson: var(--cli-red);
-  accent-color: var(--cli-blue);
+  accent-color: var(--cli-rose, #ea9a97);
 }
 
 /* ==========================================================================
@@ -117,7 +141,7 @@ body {
 }
 
 strong { font-weight: 600; }
-::selection { background: var(--cli-blue); color: var(--bg-canvas); }
+::selection { background: #403d52; color: #e0def4; }
 
 .visually-hidden {
   position: absolute !important; clip-path: inset(50%) !important; overflow: hidden !important;
@@ -459,11 +483,11 @@ strong { font-weight: 600; }
   color: var(--cli-green);
 }
 .tag-past {
-  background: rgba(103, 110, 149, 0.15);
+  background: rgba(110, 106, 134, 0.2);
   color: var(--text-muted);
 }
 .tag-forecast {
-  background: rgba(130, 170, 255, 0.15);
+  background: rgba(156, 207, 216, 0.15);
   color: var(--cli-blue);
 }
 
@@ -849,7 +873,7 @@ strong { font-weight: 600; }
   color: var(--cli-green);
 }
 .cat-toggle-text.is-excluded {
-  background: rgba(103, 110, 149, 0.15);
+  background: rgba(110, 106, 134, 0.2);
   color: var(--text-muted);
 }
 .category-budget-subtext {
@@ -1134,7 +1158,7 @@ form[method="dialog"] { padding: 1rem 1.1rem; display: flex; flex-direction: col
 .sync-feedback-box.info {
   border-color: var(--cli-blue);
   color: var(--cli-blue);
-  background: rgba(130, 170, 255, 0.12);
+  background: rgba(156, 207, 216, 0.12);
 }
 
 .sync-status-details {
