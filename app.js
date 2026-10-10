@@ -35,25 +35,25 @@
 
 
   const CATEGORY_META = {
-    // Expense categories
-    housing: { name: 'Housing & Rent', icon: '🏠', color: '#82aaff' },
-    food: { name: 'Food & Groceries', icon: '🍙', color: '#f07178' },
-    shopping: { name: 'Shopping', icon: '🛍️', color: '#c792ea' },
-    transport: { name: 'Transport & Commute', icon: '🚃', color: '#89ddff' },
-    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#7fa4ff' },
-    health: { name: 'Health & Medical', icon: '💊', color: '#c3e88d' },
-    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#ffcb6b' },
-    flight: { name: 'Flight to Japan', icon: '✈️', color: '#89ddff' },
-    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#c3e88d' },
-    visa: { name: 'Visa & Admin', icon: '🛂', color: '#f07178' },
-    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#c792ea' },
-    other_expense: { name: 'Other Expenses', icon: '📦', color: '#676e95' },
+    // Expense categories — each category has a distinctive, unique hue for instant chart legibility
+    housing: { name: 'Housing & Rent', icon: '🏠', color: '#82aaff' },        // Periwinkle Blue
+    food: { name: 'Food & Groceries', icon: '🍙', color: '#f07178' },          // Coral Red
+    shopping: { name: 'Shopping', icon: '🛍️', color: '#e06cbb' },              // Vibrant Orchid / Magenta
+    transport: { name: 'Transport & Commute', icon: '🚃', color: '#89ddff' },   // Sky Cyan
+    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#ff9e64' },   // Warm Tangerine Orange
+    health: { name: 'Health & Medical', icon: '💊', color: '#c3e88d' },        // Mint / Lime Green
+    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#ffcb6b' },       // Golden Amber Yellow
+    flight: { name: 'Flight to Japan', icon: '✈️', color: '#7c4dff' },         // Electric Deep Indigo
+    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#4fd6be' },  // Seafoam Teal
+    visa: { name: 'Visa & Admin', icon: '🛂', color: '#ff5370' },              // Crimson Rose
+    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#c792ea' },     // Lavender Purple
+    other_expense: { name: 'Other Expenses', icon: '📦', color: '#959dc0' },    // Muted Slate Blue
 
     // Income categories
     salary: { name: 'Main Job / Salary', icon: '💼', color: '#c3e88d' },
     freelance: { name: 'Freelance & Tech', icon: '💻', color: '#89ddff' },
     tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#ffcb6b' },
-    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#c792ea' },
+    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#e06cbb' },
     other_income: { name: 'Other Income', icon: '💵', color: '#82aaff' }
   };
 
