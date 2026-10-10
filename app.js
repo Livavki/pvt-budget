@@ -1203,8 +1203,21 @@
     const totalExpense = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
     if (expenses.length === 0 || totalExpense === 0) {
-      DOM.donutSvgContainer.innerHTML = `<div style="text-align:center;font-size:0.8rem;color:var(--text-muted);padding:2rem 0;">No expenses recorded</div>`;
-      DOM.donutLegendContainer.innerHTML = '';
+      const size = 160;
+      const radius = 62;
+      DOM.donutSvgContainer.innerHTML = `
+        <svg viewBox="0 0 ${size} ${size}" class="donut-svg">
+          <circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="var(--border-subtle)" stroke-width="16" stroke-dasharray="4 4"/>
+          <text x="${size / 2}" y="${size / 2 - 4}" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-weight="700">TOTAL</text>
+          <text x="${size / 2}" y="${size / 2 + 15}" text-anchor="middle" font-size="13" fill="var(--text-muted)" font-weight="800">€0</text>
+        </svg>
+      `;
+      DOM.donutLegendContainer.innerHTML = `
+        <div class="donut-empty-legend">
+          <span style="color:var(--text-secondary);font-weight:500;">No expenses recorded</span>
+          <span style="color:var(--text-muted);font-size:0.7rem;">No spending logged for ${MONTH_NAMES[calc.activeMonth]?.short || 'this month'}.</span>
+        </div>
+      `;
       return;
     }
 
@@ -1259,9 +1272,11 @@
 
     DOM.donutLegendContainer.innerHTML = categories.map(cat => `
       <div class="donut-legend-row">
-        <div class="donut-legend-info" title="${cat.name}">
+        <div class="donut-legend-info" title="${cat.name}: ${formatEUR(cat.amount)} (${cat.percent.toFixed(0)}%)">
           <span class="legend-color-chip" style="background-color: ${cat.color};"></span>
-          <span>${cat.icon} ${cat.name} (${cat.percent.toFixed(0)}%)</span>
+          <span>${cat.icon}</span>
+          <span class="donut-legend-name">${cat.name}</span>
+          <span class="donut-legend-pct">(${cat.percent.toFixed(0)}%)</span>
         </div>
         <div class="donut-legend-amt">${formatEUR(cat.amount)}</div>
       </div>
