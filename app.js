@@ -36,25 +36,25 @@
 
   const CATEGORY_META = {
     // Expense categories
-    housing: { name: 'Housing & Rent', icon: '🏠', color: '#6366f1' },
-    food: { name: 'Food & Groceries', icon: '🍙', color: '#ff6b8b' },
-    shopping: { name: 'Shopping', icon: '🛍️', color: '#ec4899' },
-    transport: { name: 'Transport & Commute', icon: '🚃', color: '#00f2fe' },
-    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#38bdf8' },
-    health: { name: 'Health & Medical', icon: '💊', color: '#14b8a6' },
-    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#f59e0b' },
-    flight: { name: 'Flight to Japan', icon: '✈️', color: '#0ea5e9' },
-    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#10b981' },
-    visa: { name: 'Visa & Admin', icon: '🛂', color: '#f43f5e' },
-    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#8b5cf6' },
-    other_expense: { name: 'Other Expenses', icon: '📦', color: '#94a3b8' },
+    housing: { name: 'Housing & Rent', icon: '🏠', color: '#82aaff' },
+    food: { name: 'Food & Groceries', icon: '🍙', color: '#f07178' },
+    shopping: { name: 'Shopping', icon: '🛍️', color: '#c792ea' },
+    transport: { name: 'Transport & Commute', icon: '🚃', color: '#89ddff' },
+    utilities: { name: 'Bills, Phone & Net', icon: '📱', color: '#7fa4ff' },
+    health: { name: 'Health & Medical', icon: '💊', color: '#c3e88d' },
+    leisure: { name: 'Leisure & Social', icon: '🍶', color: '#ffcb6b' },
+    flight: { name: 'Flight to Japan', icon: '✈️', color: '#89ddff' },
+    insurance: { name: '1-Year WHV Insurance', icon: '🏥', color: '#c3e88d' },
+    visa: { name: 'Visa & Admin', icon: '🛂', color: '#f07178' },
+    gear: { name: 'Travel Gear & Luggage', icon: '🧳', color: '#c792ea' },
+    other_expense: { name: 'Other Expenses', icon: '📦', color: '#676e95' },
 
     // Income categories
-    salary: { name: 'Main Job / Salary', icon: '💼', color: '#10b981' },
-    freelance: { name: 'Freelance & Tech', icon: '💻', color: '#06b6d4' },
-    tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#f59e0b' },
-    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#ec4899' },
-    other_income: { name: 'Other Income', icon: '💵', color: '#84cc16' }
+    salary: { name: 'Main Job / Salary', icon: '💼', color: '#c3e88d' },
+    freelance: { name: 'Freelance & Tech', icon: '💻', color: '#89ddff' },
+    tutoring: { name: 'Tutoring & Side Hustle', icon: '☕', color: '#ffcb6b' },
+    gift: { name: 'Savings Gift / Bonus', icon: '🎁', color: '#c792ea' },
+    other_income: { name: 'Other Income', icon: '💵', color: '#82aaff' }
   };
 
   const DEFAULT_EXCLUDED_CATEGORIES = ['flight', 'insurance', 'visa', 'gear', 'other_expense'];
@@ -1085,8 +1085,8 @@
       <svg viewBox="0 0 ${width} ${height}" class="chart-svg" preserveAspectRatio="none">
         <defs>
           <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#10b981' : '#f43f5e'}" stop-opacity="0.32"/>
-            <stop offset="100%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#10b981' : '#f43f5e'}" stop-opacity="0.0"/>
+            <stop offset="0%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stop-opacity="0.0"/>
           </linearGradient>
         </defs>
 
@@ -1105,7 +1105,7 @@
         <path d="${targetPathD}" fill="none" stroke="var(--brand-gold)" stroke-width="2" stroke-dasharray="5 4"/>
 
         <!-- Scheduled Path Line (Solid Emerald or Rose) -->
-        <path d="${actualPathD}" fill="none" stroke="${calc.finalJuneBalance >= calc.goal ? '#10b981' : '#f43f5e'}" stroke-width="3"/>
+        <path d="${actualPathD}" fill="none" stroke="${calc.finalJuneBalance >= calc.goal ? '#c3e88d' : '#f07178'}" stroke-width="3"/>
     `;
 
     dataPoints.forEach((p, idx) => {
@@ -1121,7 +1121,7 @@
 
         <!-- Interactive Dot -->
         <circle cx="${x}" cy="${y}" r="${isSelected ? 6 : 4.5}"
-          fill="${p.runningBalance >= p.idealTarget ? '#10b981' : '#f43f5e'}"
+          fill="${p.runningBalance >= p.idealTarget ? '#c3e88d' : '#f07178'}"
           stroke="#ffffff" stroke-width="${isSelected ? 2.5 : 1.5}"
           class="chart-dot"
           data-month="${p.name.full}"
